@@ -41,10 +41,11 @@
     .options-row { display: flex; gap: 10px; margin-top: 10px; }
     .option-group { flex: 1; }
     .option-group label { font-size: 0.75em; font-weight: bold; color: #475569; display: block; margin-bottom: 4px; }
-    select, input[type="number"], input[type="text"] { width: 100%; padding: 8px; border: 1px solid #cbd5e1; border-radius: 6px; font-size: 0.9em; }
+    select, input[type="number"] { width: 100%; padding: 8px; border: 1px solid #cbd5e1; border-radius: 6px; font-size: 0.9em; }
     
     .btn-buy { width: 100%; background: #0f172a; color: white; border: none; padding: 12px; font-size: 0.95em; font-weight: bold; border-radius: 6px; cursor: pointer; margin-top: 15px; }
     .btn-buy:hover { background: #d90429; }
+    .btn-buy:disabled { background: #cbd5e1; cursor: not-allowed; }
 
     /* Panel Lateral del Carrito Modal */
     .cart-modal { position: fixed; top: 0; right: -400px; width: 380px; height: 100%; background: white; box-shadow: -4px 0 15px rgba(0,0,0,0.2); z-index: 2000; transition: right 0.3s ease; padding: 20px; display: flex; flex-direction: column; }
@@ -54,6 +55,7 @@
     .cart-item { display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; border-bottom: 1px solid #eee; padding-bottom: 8px; font-size: 0.9em; }
     .cart-footer { border-top: 1px solid #ddd; padding-top: 10px; }
     .btn-checkout { width: 100%; background: #25d366; color: white; border: none; padding: 12px; font-weight: bold; border-radius: 6px; cursor: pointer; margin-top: 10px; }
+    .btn-checkout:disabled { background: #94a3b8; cursor: not-allowed; }
     .close-btn { background: none; border: none; font-size: 1.5em; cursor: pointer; }
     
     .state-message { text-align: center; padding: 50px 20px; font-size: 1.1em; max-width: 600px; margin: 40px auto; background: white; border-radius: 8px; }
@@ -86,7 +88,7 @@
     </div>
     <div class="cart-footer">
       <h4>Total: S/ <span id="cartTotal">0.00</span></h4>
-      <button class="btn-checkout" onclick="procesarCompra()">Confirmar Pedido</button>
+      <button id="btnCheckout" class="btn-checkout" onclick="procesarCompra()">Confirmar Pedido</button>
     </div>
   </div>
 
@@ -151,7 +153,7 @@
             <div class="options-row">
               <div class="option-group">
                 <label>TALLA:</label>
-                <select id="talla-${p.id}"></select>
+                <select id="talla-${p.id}" onchange="actualizarMaxCantidad('${p.id}')"></select>
               </div>
               <div class="option-group" style="max-width: 80px;">
                 <label>CANT:</label>
@@ -159,7 +161,7 @@
               </div>
             </div>
 
-            <button class="btn-buy" onclick="agregarCarrito('${p.id}')">Agregar al Carrito</button>
+            <button class="btn-buy" id="btn-add-${p.id}" onclick="agregarCarrito('${p.id}')">Agregar al Carrito</button>
           </div>
         `;
       }).join('');
@@ -199,10 +201,32 @@
 
       const selectTalla = document.getElementById(`talla-${idProducto}`);
       selectTalla.innerHTML = datosColor.tallas.map(t => `
-        <option value="${t.talla}" ${t.stock <= 0 ? 'disabled' : ''}>
+        <option value="${t.talla}" data-stock="${t.stock}" ${t.stock <= 0 ? 'disabled' : ''}>
           ${t.talla} ${t.stock <= 0 ? '(Agotado)' : `(${t.stock} disp.)`}
         </option>
       `).join('');
+
+      actualizarMaxCantidad(idProducto);
+    }
+
+    function actualizarMaxCantidad(idProducto) {
+      const selectTalla = document.getElementById(`talla-${idProducto}`);
+      const inputCant = document.getElementById(`cant-${idProducto}`);
+      const btnAdd = document.getElementById(`btn-add-${idProducto}`);
+      
+      const optionSelected = selectTalla.options[selectTalla.selectedIndex];
+      
+      if (!optionSelected || optionSelected.disabled) {
+        inputCant.value = 1;
+        inputCant.max = 0;
+        btnAdd.disabled = true;
+      } else {
+        const stockDispon = parseInt(optionSelected.getAttribute('data-stock')) || 0;
+        inputCant.max = stockDispon;
+        if (parseInt(inputCant.value) > stockDispon) inputCant.value = stockDispon;
+        if (stockDispon <= 0) inputCant.value = 1;
+        btnAdd.disabled = stockDispon <= 0;
+      }
     }
 
     function cambiarFotoPrincipal(idProducto, urlFoto, elementoThumb) {
@@ -221,17 +245,43 @@
       }
 
       const colorActivo = swatchActivo.title;
-      const tallaActiva = document.getElementById(`talla-${idProducto}`).value;
-      const cantidad = parseInt(document.getElementById(`cant-${idProducto}`).value) || 1;
+      const selectTalla = document.getElementById(`talla-${idProducto}`);
+      const optionSelected = selectTalla.options[selectTalla.selectedIndex];
 
-      CARRITO.push({
-        id: prod.id,
-        nombre: prod.nombre,
-        precio: prod.precio,
-        color: colorActivo,
-        talla: tallaActiva,
-        cantidad: cantidad
-      });
+      if (!optionSelected || optionSelected.disabled) {
+        alert("Esta combinación/talla se encuentra AGOTADA.");
+        return;
+      }
+
+      const tallaActiva = selectTalla.value;
+      const stockDisponible = parseInt(optionSelected.getAttribute('data-stock')) || 0;
+      const cantidadDeseada = parseInt(document.getElementById(`cant-${idProducto}`).value) || 1;
+
+      // Buscar si el ítem ya está en el carrito
+      const itemEnCarrito = CARRITO.find(item => 
+        item.id === prod.id && item.color === colorActivo && item.talla === tallaActiva
+      );
+
+      const cantidadActualEnCarrito = itemEnCarrito ? itemEnCarrito.cantidad : 0;
+      const totalDespuesDeAgregar = cantidadActualEnCarrito + cantidadDeseada;
+
+      if (totalDespuesDeAgregar > stockDisponible) {
+        alert(`Stock insuficiente.\n\nStock Total: ${stockDisponible}\nYa tienes en el carrito: ${cantidadActualEnCarrito}\nNo puedes agregar ${cantidadDeseada} unidad(es) más.`);
+        return;
+      }
+
+      if (itemEnCarrito) {
+        itemEnCarrito.cantidad = totalDespuesDeAgregar;
+      } else {
+        CARRITO.push({
+          id: prod.id,
+          nombre: prod.nombre,
+          precio: prod.precio,
+          color: colorActivo,
+          talla: tallaActiva,
+          cantidad: cantidadDeseada
+        });
+      }
 
       actualizarCarrito();
       toggleCarrito(true);
@@ -285,12 +335,35 @@
       actualizarCarrito();
     }
 
-    function procesarCompra() {
+    async function procesarCompra() {
       if (CARRITO.length === 0) {
         alert("Agrega al menos un producto al carrito.");
         return;
       }
-      alert("¡Pedido registrado con éxito! El total es: S/ " + document.getElementById('cartTotal').innerText);
+
+      const btnCheckout = document.getElementById('btnCheckout');
+      btnCheckout.disabled = true;
+      btnCheckout.innerText = "Registrando Pedido...";
+
+      try {
+        const response = await fetch(API_URL, {
+          method: 'POST',
+          mode: 'no-cors', // Evita bloqueo CORS en Google Apps Script POST
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ carrito: CARRITO })
+        });
+
+        alert("¡Pedido registrado exitosamente en tu Google Sheet!");
+        CARRITO = [];
+        actualizarCarrito();
+        toggleCarrito(false);
+
+      } catch (err) {
+        alert("Hubo un detalle al enviar la solicitud: " + err.message);
+      } finally {
+        btnCheckout.disabled = false;
+        btnCheckout.innerText = "Confirmar Pedido";
+      }
     }
 
     window.onload = cargarCatalogo;
