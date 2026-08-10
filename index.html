@@ -1,0 +1,248 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>SportFit - Tienda de Ropa Deportiva</title>
+  <style>
+    /* Estilos Generales */
+    * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
+    body { background-color: #f8f9fa; color: #333; line-height: 1.6; }
+    
+    /* Encabezado */
+    header { background: #111; color: #fff; padding: 20px 0; text-align: center; border-bottom: 4px solid #ff4757; }
+    header h1 { font-size: 2.2rem; text-transform: uppercase; letter-spacing: 2px; }
+    header p { color: #aaa; font-size: 0.9rem; margin-top: 5px; }
+
+    /* Contenedor Principal */
+    .container { max-width: 1100px; margin: 30px auto; padding: 0 20px; }
+    .section-title { font-size: 1.8rem; margin-bottom: 20px; text-align: center; text-transform: uppercase; }
+
+    /* Grid de Productos */
+    .grid-productos { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 25px; }
+    .card-producto { background: #fff; border-radius: 12px; overflow: hidden; box-shadow: 0 4px 15px rgba(0,0,0,0.08); transition: transform 0.2s; display: flex; flex-direction: column; }
+    .card-producto:hover { transform: translateY(-5px); }
+    .card-img { width: 100%; height: 260px; object-fit: cover; background: #e0e0e0; }
+    .card-body { padding: 20px; display: flex; flex-direction: column; flex-grow: 1; }
+    .card-title { font-size: 1.2rem; font-weight: bold; margin-bottom: 8px; }
+    .card-code { color: #888; font-size: 0.8rem; text-transform: uppercase; margin-bottom: 10px; }
+    .card-price { font-size: 1.4rem; font-weight: bold; color: #ff4757; margin-bottom: 15px; }
+    
+    .card-select { padding: 8px; border: 1px solid #ddd; border-radius: 6px; margin-bottom: 15px; font-size: 0.9rem; }
+    
+    .btn-comprar { background-color: #25D366; color: white; border: none; padding: 12px; border-radius: 8px; font-weight: bold; cursor: pointer; text-align: center; width: 100%; font-size: 1rem; transition: background 0.3s; margin-top: auto; }
+    .btn-comprar:hover { background-color: #1ebc57; }
+
+    /* Modal / Formulario */
+    .modal-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.6); display: none; justify-content: center; align-items: center; z-index: 1000; padding: 20px; }
+    .modal-overlay.active { display: flex; }
+    .modal-content { background: #fff; border-radius: 12px; width: 100%; max-width: 450px; padding: 30px; position: relative; }
+    .modal-close { position: absolute; top: 15px; right: 20px; font-size: 1.5rem; cursor: pointer; color: #888; }
+    .modal-title { font-size: 1.3rem; margin-bottom: 15px; color: #111; }
+    
+    .resumen-pedido { background: #f1f2f6; padding: 12px; border-radius: 6px; margin-bottom: 20px; font-size: 0.9rem; }
+
+    .form-group { margin-bottom: 15px; }
+    .form-group label { display: block; font-size: 0.85rem; font-weight: bold; margin-bottom: 5px; }
+    .form-group input { width: 100%; padding: 10px; border: 1px solid #ccc; border-radius: 6px; font-size: 0.95rem; }
+    
+    .btn-submit { background-color: #ff4757; color: white; border: none; padding: 12px; border-radius: 8px; font-weight: bold; cursor: pointer; width: 100%; font-size: 1rem; margin-top: 10px; }
+    .btn-submit:hover { background-color: #e03847; }
+
+    /* Footer */
+    footer { text-align: center; padding: 20px; color: #777; font-size: 0.85rem; margin-top: 40px; }
+  </style>
+</head>
+<body>
+
+  <header>
+    <h1>SPORTFIT</h1>
+    <p>Ropa Deportiva de Alta Rendimiento</p>
+  </header>
+
+  <main class="container">
+    <h2 class="section-title">Catálogo de Productos</h2>
+
+    <div class="grid-productos">
+
+      <!-- Producto 1 -->
+      <div class="card-producto">
+        <img src="https://images.unsplash.com/photo-1518310383802-640c2de311b2?w=500&q=80" alt="Camiseta Compression" class="card-img">
+        <div class="card-body">
+          <div class="card-code">CÓDIGO: CAM-001</div>
+          <div class="card-title">Camiseta Compression Fit</div>
+          <div class="card-price">$25.00</div>
+          
+          <label for="talla-1" style="font-size:0.8rem; font-weight:bold;">Talla:</label>
+          <select id="talla-1" class="card-select">
+            <option value="S">Small (S)</option>
+            <option value="M" selected>Medium (M)</option>
+            <option value="L">Large (L)</option>
+          </select>
+
+          <button class="btn-comprar" onclick="abrirModal('CAM-001', 'Camiseta Compression Fit', '$25.00', 'talla-1')">
+            Pedir por WhatsApp
+          </button>
+        </div>
+      </div>
+
+      <!-- Producto 2 -->
+      <div class="card-producto">
+        <img src="https://images.unsplash.com/photo-1506629082955-511b1aa562c8?w=500&q=80" alt="Leggings Deportivas" class="card-img">
+        <div class="card-body">
+          <div class="card-code">CÓDIGO: LEG-002</div>
+          <div class="card-title">Legging High Waist Pro</div>
+          <div class="card-price">$30.00</div>
+          
+          <label for="talla-2" style="font-size:0.8rem; font-weight:bold;">Talla:</label>
+          <select id="talla-2" class="card-select">
+            <option value="XS">Extra Small (XS)</option>
+            <option value="S">Small (S)</option>
+            <option value="M">Medium (M)</option>
+          </select>
+
+          <button class="btn-comprar" onclick="abrirModal('LEG-002', 'Legging High Waist Pro', '$30.00', 'talla-2')">
+            Pedir por WhatsApp
+          </button>
+        </div>
+      </div>
+
+      <!-- Producto 3 -->
+      <div class="card-producto">
+        <img src="https://images.unsplash.com/photo-1556906781-9a412961c28c?w=500&q=80" alt="Short Deportivo" class="card-img">
+        <div class="card-body">
+          <div class="card-code">CÓDIGO: SHO-003</div>
+          <div class="card-title">Short Running Ultralight</div>
+          <div class="card-price">$20.00</div>
+          
+          <label for="talla-3" style="font-size:0.8rem; font-weight:bold;">Talla:</label>
+          <select id="talla-3" class="card-select">
+            <option value="S">Small (S)</option>
+            <option value="M">Medium (M)</option>
+            <option value="L">Large (L)</option>
+          </select>
+
+          <button class="btn-comprar" onclick="abrirModal('SHO-003', 'Short Running Ultralight', '$20.00', 'talla-3')">
+            Pedir por WhatsApp
+          </button>
+        </div>
+      </div>
+
+    </div>
+  </main>
+
+  <!-- Modal Formulario de Datos del Cliente -->
+  <div class="modal-overlay" id="modalPedido">
+    <div class="modal-content">
+      <span class="modal-close" onclick="cerrarModal()">&times;</span>
+      <h3 class="modal-title">Completa tus datos de envío</h3>
+      
+      <div class="resumen-pedido" id="resumenTexto">
+        <!-- Se llena dinámicamente -->
+      </div>
+
+      <form id="formCliente" onsubmit="enviarPedido(event)">
+        <div class="form-group">
+          <label for="nombre">Nombres y Apellidos *</label>
+          <input type="text" id="nombre" placeholder="Ej: Carlos Mendoza" required>
+        </div>
+        
+        <div class="form-group">
+          <label for="celular">Número de Celular *</label>
+          <input type="tel" id="celular" placeholder="Ej: 987654321" required>
+        </div>
+
+        <div class="form-group">
+          <label for="direccion">Dirección de Envío Completa *</label>
+          <input type="text" id="direccion" placeholder="Calle, Número, Distrito / Ciudad" required>
+        </div>
+
+        <button type="submit" class="btn-submit" id="btnProcesar">
+          Confirmar y Enviar a WhatsApp
+        </button>
+      </form>
+    </div>
+  </div>
+
+  <footer>
+    &copy; 2026 SportFit Store. Todos los derechos reservados.
+  </footer>
+
+  <script>
+    // Configuración de Servidor y WhatsApp
+    const NUMERO_WHATSAPP = "51987654321"; // Sustituye por tu número de WhatsApp Business
+    const SCRIPT_URL = "https://script.google.com/macros/s/TU_SCRIPT_ID/exec"; // Reemplaza por la URL de tu Google Apps Script
+
+    let productoSeleccionado = {};
+
+    function abrirModal(codigo, producto, precio, selectTallaId) {
+      const talla = document.getElementById(selectTallaId).value;
+      
+      productoSeleccionado = {
+        codigo: codigo,
+        producto: `${producto} (Talla: ${talla})`,
+        precio: precio
+      };
+
+      document.getElementById('resumenTexto').innerHTML = `
+        <strong>Producto:</strong> ${productoSeleccionado.producto}<br>
+        <strong>Código:</strong> ${productoSeleccionado.codigo}<br>
+        <strong>Precio:</strong> ${productoSeleccionado.precio}
+      `;
+
+      document.getElementById('modalPedido').classList.add('active');
+    }
+
+    function cerrarModal() {
+      document.getElementById('modalPedido').classList.remove('active');
+    }
+
+    async function enviarPedido(event) {
+      event.preventDefault();
+
+      const btn = document.getElementById('btnProcesar');
+      btn.disabled = true;
+      btn.innerText = "Procesando...";
+
+      const cliente = {
+        nombre: document.getElementById('nombre').value.trim(),
+        celular: document.getElementById('celular').value.trim(),
+        direccion: document.getElementById('direccion').value.trim(),
+        codigo: productoSeleccionado.codigo,
+        producto: productoSeleccionado.producto,
+        precio: productoSeleccionado.precio
+      };
+
+      // 1. Guardar en Google Sheets vía Apps Script
+      try {
+        await fetch(SCRIPT_URL, {
+          method: 'POST',
+          mode: 'no-cors',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(cliente)
+        });
+      } catch (e) {
+        console.error("Error al registrar en Google Sheets", e);
+      }
+
+      // 2. Formatear mensaje para WhatsApp
+      const mensaje = `Hola! Quisiera confirmar el siguiente pedido:%0A%0A` +
+                      `*CÓDIGO:* ${cliente.codigo}%0A` +
+                      `*PRODUCTO:* ${cliente.producto}%0A` +
+                      `*PRECIO:* ${cliente.precio}%0A%0A` +
+                      `*DATOS DEL CLIENTE:*%0A` +
+                      `*Nombre:* ${cliente.nombre}%0A` +
+                      `*Celular:* ${cliente.celular}%0A` +
+                      `*Dirección:* ${cliente.direccion}`;
+
+      // 3. Abrir WhatsApp y reiniciar interfaz
+      window.open(`https://wa.me/${NUMERO_WHATSAPP}?text=${mensaje}`, '_blank');
+
+      btn.disabled = false;
+      btn.innerText = "Confirmar y Enviar a WhatsApp";
+      cerrarModal();
+      document.getElementById('formCliente').reset();
+    }
+  </script>
+</body>
+</html>
