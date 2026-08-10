@@ -47,20 +47,22 @@
     .btn-buy:hover { background: #d90429; }
     .btn-buy:disabled { background: #cbd5e1; cursor: not-allowed; }
 
-    /* Modal Carrito y Checkout */
-    .cart-modal { position: fixed; top: 0; right: -420px; width: 400px; height: 100%; background: white; box-shadow: -4px 0 15px rgba(0,0,0,0.2); z-index: 2000; transition: right 0.3s ease; padding: 20px; display: flex; flex-direction: column; overflow-y: auto; }
+    /* Modal Carrito */
+    .cart-modal { position: fixed; top: 0; right: -420px; width: 400px; height: 100%; background: white; box-shadow: -4px 0 15px rgba(0,0,0,0.2); z-index: 2000; transition: right 0.3s ease; padding: 20px; display: flex; flex-direction: column; }
     .cart-modal.open { right: 0; }
     .cart-header { display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #ddd; padding-bottom: 10px; }
-    .cart-items { max-height: 200px; overflow-y: auto; margin: 15px 0; border-bottom: 1px solid #eee; }
+    
+    .cart-step { display: none; flex: 1; flex-direction: column; overflow-y: auto; margin-top: 10px; }
+    .cart-step.active { display: flex; }
+
+    .cart-items { flex: 1; overflow-y: auto; margin: 10px 0; border-bottom: 1px solid #eee; }
     .cart-item { display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; padding-bottom: 8px; border-bottom: 1px dashed #eee; font-size: 0.85em; }
     
-    /* Formulario Cliente */
-    .checkout-form { display: none; margin-top: 10px; }
-    .checkout-form.active { display: block; }
-    .form-title { font-weight: bold; font-size: 0.95em; color: #0f172a; margin-bottom: 10px; text-transform: uppercase; border-bottom: 2px solid #d90429; padding-bottom: 4px; }
+    .form-title { font-weight: bold; font-size: 0.95em; color: #0f172a; margin: 12px 0 6px 0; text-transform: uppercase; border-bottom: 2px solid #d90429; padding-bottom: 4px; }
 
-    .btn-checkout { width: 100%; background: #25d366; color: white; border: none; padding: 12px; font-weight: bold; border-radius: 6px; cursor: pointer; margin-top: 10px; font-size: 1em; }
-    .btn-checkout:disabled { background: #94a3b8; cursor: not-allowed; }
+    .btn-next, .btn-checkout { width: 100%; background: #0f172a; color: white; border: none; padding: 12px; font-weight: bold; border-radius: 6px; cursor: pointer; margin-top: 10px; font-size: 1em; }
+    .btn-checkout { background: #25d366; }
+    .btn-secondary { background: #e2e8f0; color: #333; border: none; padding: 8px; font-weight: bold; border-radius: 6px; cursor: pointer; margin-bottom: 10px; }
     .close-btn { background: none; border: none; font-size: 1.5em; cursor: pointer; }
     
     .state-message { text-align: center; padding: 50px 20px; font-size: 1.1em; max-width: 600px; margin: 40px auto; background: white; border-radius: 8px; }
@@ -68,7 +70,6 @@
 </head>
 <body>
 
-  <!-- Botón Flotante del Carrito -->
   <button class="cart-floating-btn" onclick="toggleCarrito()">
     🛒 Ver Carrito <span id="cartCount" class="cart-badge">0</span>
   </button>
@@ -78,32 +79,37 @@
     <p>Ropa Deportiva & Importaciones</p>
   </header>
 
-  <!-- Contenedor del Catálogo -->
   <div id="catalog" class="catalog-grid">
     <div class="state-message">Cargando catálogo...</div>
   </div>
 
-  <!-- Panel Lateral Carrito & Registro de Cliente -->
+  <!-- Modal Carrito -->
   <div id="cartModal" class="cart-modal">
     <div class="cart-header">
-      <h3>Tu Carrito de Compras</h3>
+      <h3 id="modalTitle">Tu Carrito</h3>
       <button class="close-btn" onclick="toggleCarrito()">&times;</button>
     </div>
 
-    <div id="cartItems" class="cart-items">
-      <p style="text-align:center; color:#777;">El carrito está vacío.</p>
+    <!-- PASO 1: Lista de Productos -->
+    <div id="step1" class="cart-step active">
+      <div id="cartItems" class="cart-items">
+        <p style="text-align:center; color:#777;">El carrito está vacío.</p>
+      </div>
+
+      <h4>Total: S/ <span id="cartTotal">0.00</span></h4>
+      <button id="btnGoToCheckout" class="btn-next" onclick="irAFormulario()" disabled>Siguiente: Datos de Envío ➔</button>
     </div>
 
-    <h4>Total: S/ <span id="cartTotal">0.00</span></h4>
-
-    <!-- Formulario de Pedido -->
-    <div id="checkoutForm" class="checkout-form">
+    <!-- PASO 2: Registro de Datos del Cliente -->
+    <div id="step2" class="cart-step">
+      <button class="btn-secondary" onclick="irACarrito()">⬅ Volver al Carrito</button>
+      
       <div class="form-title">Datos Personales</div>
       
       <label style="font-size: 0.8em; font-weight: bold;">Nombres y Apellidos *</label>
       <input type="text" id="cliNombres" placeholder="Ej: Maria Lopez" required>
 
-      <label style="font-size: 0.8em; font-weight: bold;">Correo Electrónico (para tu confirmación) *</label>
+      <label style="font-size: 0.8em; font-weight: bold;">Correo Electrónico *</label>
       <input type="email" id="cliCorreo" placeholder="ejemplo@correo.com" required>
 
       <div style="display: flex; gap: 8px;">
@@ -118,61 +124,35 @@
       </div>
 
       <label style="font-size: 0.8em; font-weight: bold;">Teléfono Opcional</label>
-      <input type="tel" id="cliTelefono" placeholder="Teléfono Fijo / Opcional">
+      <input type="tel" id="cliTelefono" placeholder="Fijo / Opcional">
 
-      <div class="form-title" style="margin-top: 10px;">Dirección de Envío</div>
+      <div class="form-title">Dirección de Envío</div>
 
       <label style="font-size: 0.8em; font-weight: bold;">Departamento *</label>
-      <select id="cliDepa" onchange="cargarProvincias()"></select>
+      <input type="text" id="cliDepa" list="listDepas" placeholder="Escribe tu Departamento">
+      <datalist id="listDepas">
+        <option value="Lima"><option value="Arequipa"><option value="La Libertad">
+        <option value="Lambayeque"><option value="Piura"><option value="Cusco">
+        <option value="Junín"><option value="Áncash"><option value="Ica">
+      </datalist>
 
       <label style="font-size: 0.8em; font-weight: bold;">Provincia *</label>
-      <select id="cliProv" onchange="cargarDistritos()"></select>
+      <input type="text" id="cliProv" placeholder="Ej: Lima, Santa, Chiclayo, etc.">
 
       <label style="font-size: 0.8em; font-weight: bold;">Distrito *</label>
-      <select id="cliDist"></select>
+      <input type="text" id="cliDist" placeholder="Ej: Carabayllo, Los Olivos, etc.">
 
       <label style="font-size: 0.8em; font-weight: bold;">Dirección Exacta *</label>
       <input type="text" id="cliDireccion" placeholder="Av / Calle / Mz / Lt" required>
-    </div>
 
-    <button id="btnCheckout" class="btn-checkout" onclick="procesarCompra()">Confirmar Pedido</button>
+      <button id="btnCheckout" class="btn-checkout" onclick="procesarCompra()">Confirmar Pedido</button>
+    </div>
   </div>
 
   <script>
-    // URL de tu Web App de Google Apps Script
     const API_URL = "https://script.google.com/macros/s/AKfycbw2xukRqOSqU-CIrna8cEQWV_NTyS2_E1YLz6fa9aksTHBRs9H0QDz6_NKJjf-Hl5vGbA/exec";
-    
     let CATALOGO = [];
     let CARRITO = [];
-
-    // Ubigeo Perú
-    const UBIGEO = {
-      "LIMA": {
-        "LIMA": ["Lima", "Miraflores", "San Isidro", "Surco", "San Borja", "Ate", "Los Olivos", "Comas", "Chorrillos", "La Molina", "San Miguel", "Independencia", "San Martin de Porres", "Breña", "Jesús María", "Magdalena del Mar", "Pueblo Libre", "San Juan de Lurigancho", "San Juan de Miraflores", "Villa El Salvador", "Villa María del Triunfo"],
-        "CALLAO": ["Callao", "Bellavista", "La Perla", "La Punta", "Ventanilla", "Carmen de La Legua"]
-      },
-      "AREQUIPA": {
-        "AREQUIPA": ["Arequipa", "Yanahuara", "Cayma", "Cerro Colorado", "Bustamante y Rivero", "Sachaca"]
-      },
-      "LA LIBERTAD": {
-        "TRUJILLO": ["Trujillo", "Víctor Larco Herrera", "La Esperanza", "El Porvenir", "Florencia de Mora"]
-      },
-      "LAMBAYEQUE": {
-        "CHICLAYO": ["Chiclayo", "José Leonardo Ortiz", "La Victoria", "Pimentel"]
-      },
-      "PIURA": {
-        "PIURA": ["Piura", "Castilla", "Catacaos", "Veintiséis de Octubre"]
-      },
-      "CUSCO": {
-        "CUSCO": ["Cusco", "Wanchaq", "San Sebastián", "Santiago", "San Jerónimo"]
-      },
-      "JUNIN": {
-        "HUANCAYO": ["Huancayo", "El Tambo", "Chilca"]
-      },
-      "ANCASH": {
-        "SANTA": ["Chimbote", "Nuevo Chimbote"]
-      }
-    };
 
     function normalizarUrlImagen(url) {
       if (!url) return 'https://via.placeholder.com/300?text=Sin+Imagen';
@@ -180,43 +160,6 @@
         return url.replace('github.com', 'raw.githubusercontent.com').replace('/blob/', '/');
       }
       return url;
-    }
-
-    function inicializarUbigeo() {
-      const depaSelect = document.getElementById('cliDepa');
-      depaSelect.innerHTML = '<option value="">Seleccione Departamento</option>';
-      Object.keys(UBIGEO).forEach(depa => {
-        depaSelect.innerHTML += `<option value="${depa}">${depa}</option>`;
-      });
-    }
-
-    function cargarProvincias() {
-      const depa = document.getElementById('cliDepa').value;
-      const provSelect = document.getElementById('cliProv');
-      const distSelect = document.getElementById('cliDist');
-      
-      provSelect.innerHTML = '<option value="">Seleccione Provincia</option>';
-      distSelect.innerHTML = '<option value="">Seleccione Distrito</option>';
-
-      if (depa && UBIGEO[depa]) {
-        Object.keys(UBIGEO[depa]).forEach(prov => {
-          provSelect.innerHTML += `<option value="${prov}">${prov}</option>`;
-        });
-      }
-    }
-
-    function cargarDistritos() {
-      const depa = document.getElementById('cliDepa').value;
-      const prov = document.getElementById('cliProv').value;
-      const distSelect = document.getElementById('cliDist');
-
-      distSelect.innerHTML = '<option value="">Seleccione Distrito</option>';
-
-      if (depa && prov && UBIGEO[depa][prov]) {
-        UBIGEO[depa][prov].forEach(dist => {
-          distSelect.innerHTML += `<option value="${dist}">${dist}</option>`;
-        });
-      }
     }
 
     async function cargarCatalogo() {
@@ -408,6 +351,7 @@
       }
 
       actualizarCarrito();
+      irACarrito();
       toggleCarrito(true);
     }
 
@@ -420,22 +364,37 @@
       }
     }
 
+    function irAFormulario() {
+      if (CARRITO.length === 0) return;
+      document.getElementById('step1').classList.remove('active');
+      document.getElementById('step2').classList.add('active');
+      document.getElementById('modalTitle').innerText = "Datos de Envío";
+    }
+
+    function irACarrito() {
+      document.getElementById('step2').classList.remove('active');
+      document.getElementById('step1').classList.add('active');
+      document.getElementById('modalTitle').innerText = "Tu Carrito";
+    }
+
     function actualizarCarrito() {
       const contenedor = document.getElementById('cartItems');
       const count = document.getElementById('cartCount');
       const total = document.getElementById('cartTotal');
-      const form = document.getElementById('checkoutForm');
+      const btnNext = document.getElementById('btnGoToCheckout');
 
-      count.innerText = CARRITO.reduce((sum, item) => sum + item.cantidad, 0);
+      const totalItems = CARRITO.reduce((sum, item) => sum + item.cantidad, 0);
+      count.innerText = totalItems;
 
       if (CARRITO.length === 0) {
         contenedor.innerHTML = '<p style="text-align:center; color:#777;">El carrito está vacío.</p>';
         total.innerText = "0.00";
-        form.classList.remove('active');
+        btnNext.disabled = true;
+        irACarrito();
         return;
       }
 
-      form.classList.add('active');
+      btnNext.disabled = false;
 
       let totalSoles = 0;
       contenedor.innerHTML = CARRITO.map((item, index) => {
@@ -474,13 +433,13 @@
       const dni = document.getElementById('cliDni').value.trim();
       const celular = document.getElementById('cliCelular').value.trim();
       const telefono = document.getElementById('cliTelefono').value.trim();
-      const depa = document.getElementById('cliDepa').value;
-      const prov = document.getElementById('cliProv').value;
-      const dist = document.getElementById('cliDist').value;
+      const depa = document.getElementById('cliDepa').value.trim();
+      const prov = document.getElementById('cliProv').value.trim();
+      const dist = document.getElementById('cliDist').value.trim();
       const direccion = document.getElementById('cliDireccion').value.trim();
 
       if (!nombres || !correo || !dni || !celular || !depa || !prov || !dist || !direccion) {
-        alert("Por favor completa todos los campos obligatorios (*) incluyendo tu correo para enviarte la confirmación.");
+        alert("Por favor completa todos los campos obligatorios (*).");
         return;
       }
 
@@ -491,7 +450,7 @@
 
       const btnCheckout = document.getElementById('btnCheckout');
       btnCheckout.disabled = true;
-      btnCheckout.innerText = "Registrando Pedido...";
+      btnCheckout.innerText = "Procesando...";
 
       try {
         const payload = {
@@ -507,12 +466,16 @@
           body: JSON.stringify(payload)
         });
 
-        alert("¡Pedido registrado exitosamente!\n\nSe ha guardado tu orden con los datos de entrega y enviado la confirmación a tu correo.");
+        alert("¡Pedido registrado exitosamente!\n\nSe descontará el stock correspondiente y nos pondremos en contacto contigo.");
         
         CARRITO = [];
         actualizarCarrito();
         toggleCarrito(false);
-        cargarCatalogo(); // Recargar catálogo para actualizar el stock consumido
+        
+        // Recargar catálogo para actualizar visualmente el stock restado
+        setTimeout(() => {
+          cargarCatalogo();
+        }, 1500);
 
       } catch (err) {
         alert("Ocurrió un error al registrar el pedido: " + err.message);
@@ -523,7 +486,6 @@
     }
 
     window.onload = () => {
-      inicializarUbigeo();
       cargarCatalogo();
     };
   </script>
