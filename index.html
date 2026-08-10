@@ -5,90 +5,161 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>MILADY IMPORT - Tienda</title>
   <style>
-    body { font-family: Arial, sans-serif; background: #f5f5f5; margin: 0; padding: 20px; }
-    .catalog-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); gap: 20px; max-width: 1200px; margin: 0 auto; }
+    * { box-sizing: border-box; }
+    body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background: #f8f9fa; margin: 0; padding: 20px; color: #333; }
     
-    .card-product { background: #fff; border-radius: 8px; border: 1px solid #e0e0e0; padding: 15px; box-shadow: 0 2px 5px rgba(0,0,0,0.05); }
+    header { text-align: center; margin-bottom: 30px; }
+    header h1 { margin: 0; color: #111; font-size: 2.2em; text-transform: uppercase; letter-spacing: 2px; }
+    header p { color: #d90429; font-weight: bold; margin-top: 5px; }
+
+    .catalog-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); gap: 25px; max-width: 1200px; margin: 0 auto; }
     
-    /* Layout Galería Estilo Falabella */
-    .gallery-layout { display: flex; gap: 10px; height: 350px; margin-bottom: 12px; }
-    .thumbnails-sidebar { display: flex; flex-direction: column; gap: 6px; overflow-y: auto; width: 60px; }
-    .thumb-img { width: 50px; height: 60px; object-fit: cover; border-radius: 4px; border: 1px solid #ddd; cursor: pointer; opacity: 0.6; }
-    .thumb-img.active, .thumb-img:hover { opacity: 1; border-color: #000; }
-    .main-image-container { flex: 1; position: relative; }
-    .main-image { width: 100%; height: 100%; object-fit: cover; border-radius: 6px; }
+    .card-product { background: #fff; border-radius: 10px; border: 1px solid #e2e8f0; padding: 16px; box-shadow: 0 4px 12px rgba(0,0,0,0.05); transition: transform 0.2s; }
+    .card-product:hover { transform: translateY(-3px); }
     
-    .product-title { font-size: 1.1em; font-weight: bold; margin: 5px 0; }
-    .product-price { font-size: 1.3em; color: #d90429; font-weight: bold; margin-bottom: 10px; }
+    /* Layout Galería */
+    .gallery-layout { display: flex; gap: 10px; height: 360px; margin-bottom: 15px; }
+    .thumbnails-sidebar { display: flex; flex-direction: column; gap: 8px; overflow-y: auto; width: 65px; padding-right: 2px; }
+    .thumb-img { width: 55px; height: 70px; object-fit: cover; border-radius: 4px; border: 2px solid #e2e8f0; cursor: pointer; opacity: 0.6; transition: all 0.2s; }
+    .thumb-img.active, .thumb-img:hover { opacity: 1; border-color: #d90429; }
+    .main-image-container { flex: 1; position: relative; background: #f1f5f9; border-radius: 6px; overflow: hidden; }
+    .main-image { width: 100%; height: 100%; object-fit: cover; display: block; }
+    
+    .product-code { font-size: 0.75em; color: #64748b; font-weight: bold; }
+    .product-title { font-size: 1.15em; font-weight: 700; margin: 4px 0 8px 0; color: #0f172a; }
+    .product-price { font-size: 1.35em; color: #d90429; font-weight: bold; margin-bottom: 12px; }
     
     /* Muestras de Colores */
-    .color-swatches { display: flex; gap: 8px; margin: 10px 0; }
-    .swatch { width: 22px; height: 22px; border-radius: 50%; border: 2px solid #fff; outline: 1px solid #ccc; cursor: pointer; transition: transform 0.2s; }
-    .swatch.selected { outline: 2px solid #000; transform: scale(1.1); }
+    .color-section { margin-bottom: 12px; }
+    .color-label { font-size: 0.8em; font-weight: bold; color: #475569; display: block; margin-bottom: 6px; }
+    .color-swatches { display: flex; gap: 8px; flex-wrap: wrap; }
+    .swatch { width: 24px; height: 24px; border-radius: 50%; border: 2px solid #fff; outline: 1px solid #cbd5e1; cursor: pointer; transition: transform 0.2s; }
+    .swatch.selected { outline: 2px solid #d90429; transform: scale(1.15); }
     
     /* Opciones */
     .options-row { display: flex; gap: 10px; margin-top: 10px; }
-    select, input[type="number"] { width: 100%; padding: 8px; border: 1px solid #ccc; border-radius: 4px; }
-    .btn-buy { width: 100%; background: #111; color: white; border: none; padding: 10px; font-weight: bold; border-radius: 4px; cursor: pointer; margin-top: 12px; }
+    .option-group { flex: 1; }
+    .option-group label { font-size: 0.75em; font-weight: bold; color: #475569; display: block; margin-bottom: 4px; }
+    select, input[type="number"] { width: 100%; padding: 8px; border: 1px solid #cbd5e1; border-radius: 6px; font-size: 0.9em; background: #fff; }
+    
+    .btn-buy { width: 100%; background: #0f172a; color: white; border: none; padding: 12px; font-size: 0.95em; font-weight: bold; border-radius: 6px; cursor: pointer; margin-top: 15px; transition: background 0.2s; }
     .btn-buy:hover { background: #d90429; }
+
+    /* Mensajes */
+    .state-message { text-align: center; padding: 50px 20px; font-size: 1.1em; max-width: 600px; margin: 40px auto; background: white; border-radius: 8px; box-shadow: 0 2px 8px rgba(0,0,0,0.05); }
+    .error-box { border-left: 4px solid #d90429; color: #991b1b; }
+    .error-box code { display: block; background: #fef2f2; padding: 10px; margin-top: 10px; font-size: 0.85em; border-radius: 4px; text-align: left; overflow-x: auto; }
   </style>
 </head>
 <body>
 
-  <div id="catalog" class="catalog-grid">Cargando productos...</div>
+  <header>
+    <h1>MILADY IMPORT</h1>
+    <p>Ropa Deportiva & Importaciones</p>
+  </header>
+
+  <div id="catalog" class="catalog-grid">
+    <div class="state-message">Cargando catálogo de productos...</div>
+  </div>
 
   <script>
     const API_URL = "https://script.google.com/macros/s/AKfycbw2xukRqOSqU-CIrna8cEQWV_NTyS2_E1YLz6fa9aksTHBRs9H0QDz6_NKJjf-Hl5vGbA/exec";
     let CATALOGO = [];
 
-    async function cargarCatalogo() {
-      try {
-        const res = await fetch(API_URL);
-        CATALOGO = await res.json();
-        renderizar();
-      } catch (e) {
-        document.getElementById('catalog').innerText = "Error cargando datos.";
+    // Convierte URLs normales de GitHub (blob/main) a URLs directas de imagen (raw)
+    function normalizarUrlImagen(url) {
+      if (!url) return 'https://via.placeholder.com/300?text=Sin+Imagen';
+      if (url.includes('github.com') && url.includes('/blob/')) {
+        return url.replace('github.com', 'raw.githubusercontent.com').replace('/blob/', '/');
       }
+      return url;
+    }
+
+    async function cargarCatalogo() {
+      const contenedor = document.getElementById('catalog');
+      try {
+        // Petición con soporte de redirecciones de Apps Script
+        const res = await fetch(API_URL, {
+          method: 'GET',
+          redirect: 'follow'
+        });
+
+        if (!res.ok) throw new Error(`HTTP Error Status: ${res.status}`);
+
+        const data = await res.json();
+
+        if (data.error) {
+          mostrarError("Error reportado por Apps Script:", data.error);
+          return;
+        }
+
+        CATALOGO = data;
+
+        if (!CATALOGO || CATALOGO.length === 0) {
+          contenedor.innerHTML = '<div class="state-message">No se encontraron productos en el inventario.</div>';
+          return;
+        }
+
+        renderizar();
+
+      } catch (e) {
+        console.error("Error al cargar el catálogo:", e);
+        mostrarError("No se pudo conectar con la base de datos.", e.message || e);
+      }
+    }
+
+    function mostrarError(titulo, detalle) {
+      const contenedor = document.getElementById('catalog');
+      contenedor.className = "";
+      contenedor.innerHTML = `
+        <div class="state-message error-box">
+          <strong>⚠️ ${titulo}</strong>
+          <p style="font-size: 0.9em; margin: 8px 0;">Verifica la configuración de tu Google Sheet y Apps Script.</p>
+          <code>${detalle}</code>
+        </div>
+      `;
     }
 
     function renderizar() {
       const contenedor = document.getElementById('catalog');
+      contenedor.className = "catalog-grid";
+
       contenedor.innerHTML = CATALOGO.map(p => {
-        const nombresColores = Object.keys(p.colores);
-        const primerColor = nombresColores[0] || null;
+        const nombresColores = Object.keys(p.colores || {});
         
         return `
           <div class="card-product" id="card-${p.id}">
             <div class="gallery-layout">
-              <div class="thumbnails-sidebar" id="thumbs-${p.id}">
-                <!-- Miniaturas dinámicas -->
-              </div>
+              <div class="thumbnails-sidebar" id="thumbs-${p.id}"></div>
               <div class="main-image-container">
-                <img id="main-img-${p.id}" src="${p.fotoPrincipal}" class="main-image">
+                <img id="main-img-${p.id}" src="${normalizarUrlImagen(p.fotoPrincipal)}" class="main-image" alt="${p.nombre}">
               </div>
             </div>
 
+            <div class="product-code">CÓDIGO: ${p.id}</div>
             <div class="product-title">${p.nombre}</div>
-            <div class="product-price">S/ ${p.precio.toFixed(2)}</div>
+            <div class="product-price">S/ ${Number(p.precio).toFixed(2)}</div>
             
-            <label style="font-size:0.8em; font-weight:bold;">COLOR:</label>
-            <div class="color-swatches">
-              ${nombresColores.map(c => `
-                <div class="swatch" 
-                     style="background-color: ${p.colores[c].hex}" 
-                     title="${c}"
-                     onclick="seleccionarColor('${p.id}', '${c}', this)">
-                </div>
-              `).join('')}
+            <div class="color-section">
+              <span class="color-label">COLOR DISPONIBLE:</span>
+              <div class="color-swatches">
+                ${nombresColores.map(c => `
+                  <div class="swatch" 
+                       style="background-color: ${p.colores[c].hex}" 
+                       title="${c}"
+                       onclick="seleccionarColor('${p.id}', '${c}', this)">
+                  </div>
+                `).join('')}
+              </div>
             </div>
 
             <div class="options-row">
-              <div style="flex: 2;">
-                <label style="font-size:0.8em; font-weight:bold;">TALLA:</label>
+              <div class="option-group">
+                <label>TALLA:</label>
                 <select id="talla-${p.id}"></select>
               </div>
-              <div style="flex: 1;">
-                <label style="font-size:0.8em; font-weight:bold;">CANT:</label>
+              <div class="option-group" style="max-width: 80px;">
+                <label>CANT:</label>
                 <input type="number" id="cant-${p.id}" value="1" min="1">
               </div>
             </div>
@@ -98,10 +169,11 @@
         `;
       }).join('');
 
-      // Inicializar cada card con su primer color disponible
+      // Inicializar el primer color de cada producto
       CATALOGO.forEach(p => {
-        const primerColor = Object.keys(p.colores)[0];
-        if (primerColor) {
+        const nombresColores = Object.keys(p.colores || {});
+        if (nombresColores.length > 0) {
+          const primerColor = nombresColores[0];
           const primerSwatch = document.querySelector(`#card-${p.id} .swatch`);
           seleccionarColor(p.id, primerColor, primerSwatch);
         }
@@ -110,32 +182,34 @@
 
     function seleccionarColor(idProducto, nombreColor, elementoSwatch) {
       const prod = CATALOGO.find(p => p.id === idProducto);
+      if (!prod || !prod.colores[nombreColor]) return;
+
       const datosColor = prod.colores[nombreColor];
 
-      // 1. Marcar color activo
+      // Marcar visualmente el color activo
       document.querySelectorAll(`#card-${idProducto} .swatch`).forEach(s => s.classList.remove('selected'));
-      if(elementoSwatch) elementoSwatch.classList.add('selected');
+      if (elementoSwatch) elementoSwatch.classList.add('selected');
 
-      // 2. Cargar pool de fotos para ese color
+      // Actualizar galería de imágenes
       const contenedorThumbs = document.getElementById(`thumbs-${idProducto}`);
       const mainImg = document.getElementById(`main-img-${idProducto}`);
       
       const fotosPool = (datosColor.fotos && datosColor.fotos.length > 0) 
-                         ? datosColor.fotos 
-                         : [prod.fotoPrincipal];
+                         ? datosColor.fotos.map(normalizarUrlImagen)
+                         : [normalizarUrlImagen(prod.fotoPrincipal)];
 
-      mainImg.src = fotosPool[0]; // Mostrar la primera del pool
+      mainImg.src = fotosPool[0];
 
       contenedorThumbs.innerHTML = fotosPool.map((f, idx) => `
         <img src="${f}" class="thumb-img ${idx === 0 ? 'active' : ''}" 
              onclick="cambiarFotoPrincipal('${idProducto}', '${f}', this)">
       `).join('');
 
-      // 3. Cargar tallas disponibles para este color
+      // Actualizar lista desplegable de tallas según stock
       const selectTalla = document.getElementById(`talla-${idProducto}`);
       selectTalla.innerHTML = datosColor.tallas.map(t => `
         <option value="${t.talla}" ${t.stock <= 0 ? 'disabled' : ''}>
-          ${t.talla} ${t.stock <= 0 ? '(Agotado)' : ''}
+          ${t.talla} ${t.stock <= 0 ? '(Agotado)' : `(${t.stock} disp.)`}
         </option>
       `).join('');
     }
@@ -148,11 +222,17 @@
 
     function agregarCarrito(idProducto) {
       const prod = CATALOGO.find(p => p.id === idProducto);
-      const colorActivo = document.querySelector(`#card-${idProducto} .swatch.selected`).title;
+      const swatchActivo = document.querySelector(`#card-${idProducto} .swatch.selected`);
+      if (!swatchActivo) {
+        alert("Por favor selecciona un color.");
+        return;
+      }
+
+      const colorActivo = swatchActivo.title;
       const tallaActiva = document.getElementById(`talla-${idProducto}`).value;
       const cantidad = parseInt(document.getElementById(`cant-${idProducto}`).value) || 1;
 
-      alert(`Añadido: ${prod.nombre}\nColor: ${colorActivo}\nTalla: ${tallaActiva}\nCantidad: ${cantidad}`);
+      alert(`Añadido con éxito:\n\nProducto: ${prod.nombre}\nColor: ${colorActivo}\nTalla: ${tallaActiva}\nCantidad: ${cantidad}`);
     }
 
     window.onload = cargarCatalogo;
