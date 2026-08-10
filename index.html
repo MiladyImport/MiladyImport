@@ -3,61 +3,43 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Milady Import - Ropa Deportiva</title>
+  <title>MILADY IMPORT - Catálogo de Productos</title>
   <style>
-    * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Segoe UI', sans-serif; }
-    body { background-color: #f8f9fa; color: #333; padding-bottom: 80px; }
+    :root {
+      --primary: #d90429;
+      --dark: #111;
+      --light: #f8f9fa;
+    }
+    body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; margin: 0; padding: 0; background-color: #f4f4f9; }
+    header { background: var(--dark); color: white; text-align: center; padding: 20px 10px; border-bottom: 4px solid var(--primary); }
+    header h1 { margin: 0; font-size: 2em; letter-spacing: 2px; }
+    header p { margin: 5px 0 0; color: #ccc; }
+    .container { max-width: 1200px; margin: 20px auto; padding: 0 15px; }
+    .title-section { text-align: center; font-size: 1.8em; margin-bottom: 25px; text-transform: uppercase; }
     
-    header { background: #111; color: #fff; padding: 20px; text-align: center; border-bottom: 4px solid #ff4757; position: relative; }
-    header h1 { font-size: 2.2rem; text-transform: uppercase; letter-spacing: 2px; }
+    .grid-productos { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 20px; }
+    .card-producto { background: white; border-radius: 8px; overflow: hidden; box-shadow: 0 4px 10px rgba(0,0,0,0.1); position: relative; transition: transform 0.2s; }
+    .card-producto:hover { transform: translateY(-3px); }
     
-    .cart-btn-header { position: absolute; right: 20px; top: 25px; background: #ff4757; color: white; border: none; padding: 10px 18px; border-radius: 20px; font-weight: bold; cursor: pointer; display: flex; align-items: center; gap: 8px; }
-    .cart-count { background: white; color: #ff4757; border-radius: 50%; padding: 2px 8px; font-size: 0.85rem; }
-
-    .container { max-width: 1100px; margin: 30px auto; padding: 0 20px; }
-    .section-title { font-size: 1.8rem; margin-bottom: 20px; text-align: center; text-transform: uppercase; }
-
-    .grid-productos { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 25px; }
-    .card-producto { background: #fff; border-radius: 12px; overflow: hidden; box-shadow: 0 4px 15px rgba(0,0,0,0.08); display: flex; flex-direction: column; position: relative; }
-    .card-producto.producto-agotado { opacity: 0.75; }
-
-    .badge-agotado { position: absolute; top: 15px; left: 15px; background: #ff4757; color: white; padding: 5px 10px; font-weight: bold; font-size: 0.8rem; border-radius: 4px; z-index: 10; }
-
-    /* Galería */
-    .gallery-container { padding: 10px; text-align: center; }
-    .main-img { width: 100%; height: 260px; object-fit: cover; border-radius: 8px; }
-    .thumbs-grid { display: flex; gap: 5px; justify-content: center; margin-top: 8px; }
-    .thumb-img { width: 45px; height: 45px; object-fit: cover; border-radius: 4px; cursor: pointer; border: 2px solid transparent; }
-    .thumb-img.active { border-color: #ff4757; }
-
-    .card-body { padding: 15px 20px 20px; display: flex; flex-direction: column; flex-grow: 1; }
-    .card-title { font-size: 1.2rem; font-weight: bold; margin-bottom: 5px; }
-    .card-code { color: #888; font-size: 0.8rem; margin-bottom: 4px; }
-    .card-price { font-size: 1.4rem; font-weight: bold; color: #ff4757; margin-bottom: 4px; }
-    .stock-text { font-size: 0.85rem; font-weight: bold; margin-bottom: 12px; }
+    .gallery-container { width: 100%; height: 300px; background: #eee; position: relative; }
+    .main-img { width: 100%; height: 100%; object-fit: cover; }
+    
+    .card-body { padding: 15px; }
+    .card-code { font-size: 0.8em; color: #777; font-weight: bold; }
+    .card-title { font-size: 1.2em; font-weight: bold; margin: 5px 0; }
+    .card-price { font-size: 1.3em; color: var(--primary); font-weight: bold; margin-bottom: 10px; }
     
     .form-option { display: flex; gap: 10px; margin-bottom: 15px; }
     .form-option div { flex: 1; }
-    .form-option label { display: block; font-size: 0.75rem; font-weight: bold; margin-bottom: 3px; }
-    .card-select, .card-input { width: 100%; padding: 8px; border: 1px solid #ddd; border-radius: 6px; }
+    .form-option label { font-size: 0.8em; font-weight: bold; display: block; margin-bottom: 3px; }
+    .card-select, .card-input { width: 100%; padding: 6px; border: 1px solid #ccc; border-radius: 4px; box-sizing: border-box; }
     
-    .btn-add-cart { background-color: #25D366; color: white; border: none; padding: 12px; border-radius: 8px; font-weight: bold; cursor: pointer; width: 100%; margin-top: auto; }
-    .btn-add-cart:hover { background-color: #1ebc57; }
-
-    /* Modal */
-    .modal-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.6); display: none; justify-content: center; align-items: center; z-index: 1000; padding: 20px; }
-    .modal-overlay.active { display: flex; }
-    .modal-content { background: #fff; border-radius: 12px; width: 100%; max-width: 500px; padding: 25px; max-height: 90vh; overflow-y: auto; }
-    .modal-close { float: right; font-size: 1.5rem; cursor: pointer; }
+    .btn-add-cart { width: 100%; background: var(--dark); color: white; border: none; padding: 10px; border-radius: 4px; font-weight: bold; cursor: pointer; transition: background 0.2s; }
+    .btn-add-cart:hover { background: var(--primary); }
     
-    .cart-item { display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #eee; padding: 10px 0; }
-    .cart-totals { background: #f8f9fa; padding: 15px; border-radius: 8px; margin: 15px 0; }
-    
-    .form-group { margin-bottom: 12px; }
-    .form-group label { display: block; font-size: 0.85rem; font-weight: bold; margin-bottom: 4px; }
-    .form-group input, .form-group select { width: 100%; padding: 10px; border: 1px solid #ccc; border-radius: 6px; }
-
-    .btn-submit { background-color: #ff4757; color: white; border: none; padding: 12px; border-radius: 8px; font-weight: bold; cursor: pointer; width: 100%; font-size: 1rem; }
+    .badge-agotado { position: absolute; top: 10px; right: 10px; background: red; color: white; padding: 4px 8px; font-size: 0.8em; border-radius: 4px; font-weight: bold; z-index: 2; }
+    .loading, .error-msg { text-align: center; font-size: 1.2em; padding: 40px; }
+    .error-msg { color: red; }
   </style>
 </head>
 <body>
@@ -65,137 +47,80 @@
   <header>
     <h1>MILADY IMPORT</h1>
     <p>Ropa Deportiva & Importaciones</p>
-    <button class="cart-btn-header" onclick="abrirCarrito()">
-      🛒 Carrito <span class="cart-count" id="cartCount">0</span>
-    </button>
   </header>
 
-  <main class="container">
-    <h2 class="section-title">Catálogo de Productos</h2>
-    <div class="grid-productos" id="contenedorProductos"></div>
-  </main>
-
-  <!-- Modal del Carrito -->
-  <div class="modal-overlay" id="modalCarrito">
-    <div class="modal-content">
-      <span class="modal-close" onclick="cerrarCarrito()">&times;</span>
-      <h3>Tu Carrito de Compras</h3>
-      
-      <div id="listaCarrito" style="margin-top: 15px;"></div>
-
-      <div class="cart-totals">
-        <div>Subtotal: <strong id="txtSubtotal">$0.00</strong></div>
-        <div>Delivery: <strong id="txtDelivery">$0.00</strong></div>
-        <hr style="margin: 8px 0;">
-        <div style="font-size: 1.1rem; color: #ff4757;">Total a Pagar: <strong id="txtTotal">$0.00</strong></div>
-      </div>
-
-      <form id="formPedido" onsubmit="procesarPedido(event)">
-        <h4>Datos de Entrega</h4>
-        <div class="form-group">
-          <label>Nombres y Apellidos *</label>
-          <input type="text" id="nombre" required>
-        </div>
-        <div class="form-group">
-          <label>Celular (WhatsApp) *</label>
-          <input type="tel" id="celular" required>
-        </div>
-        <div class="form-group">
-          <label>Correo Electrónico *</label>
-          <input type="email" id="correo" required>
-        </div>
-        <div class="form-group">
-          <label>Distrito / Zona de Delivery *</label>
-          <select id="selectZona" onchange="actualizarTotales()" required></select>
-        </div>
-        <div class="form-group">
-          <label>Dirección de Envío *</label>
-          <input type="text" id="direccion" required>
-        </div>
-
-        <button type="submit" class="btn-submit" id="btnEnviar">Registrar Pedido y Enviar a WhatsApp</button>
-      </form>
-    </div>
+  <div class="container">
+    <h2 class="title-section">Catálogo de Productos</h2>
+    <div id="contenedorProductos" class="loading">Cargando inventario...</div>
   </div>
 
   <script>
-    const NUMERO_WHATSAPP = "51993512287"; // Reemplaza con tu celular de WhatsApp
-    const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbw2xukRqOSqU-CIrna8cEQWV_NTyS2_E1YLz6fa9aksTHBRs9H0QDz6_NKJjf-Hl5vGbA/exec"; // Reemplaza con la URL de tu Apps Script
-
-    const TARIFAS_DELIVERY = {
-      "Lima Centro / Cercado": 10.00,
-      "Lima Norte": 12.00,
-      "Lima Sur": 15.00,
-      "Callao": 15.00,
-      "Provincia (Agencia)": 20.00
-    };
-
+    // URL de tu ejecutable de Google Apps Script
+    const API_URL = "https://script.google.com/macros/s/AKfycbw2xukRqOSqU-CIrna8cEQWV_NTyS2_E1YLz6fa9aksTHBRs9H0QDz6_NKJjf-Hl5vGbA/exec"; 
     let CATALOGO = [];
     let carrito = [];
 
-    async function cargarProductosDesdeSheet() {
+    async function cargarInventario() {
       const contenedor = document.getElementById("contenedorProductos");
-      contenedor.innerHTML = "<p style='text-align:center; grid-column: 1/-1;'>Cargando productos desde el inventario...</p>";
-
       try {
-        const res = await fetch(SCRIPT_URL);
-        CATALOGO = await res.json();
+        const respuesta = await fetch(API_URL);
+        if (!respuesta.ok) throw new Error("Error en la respuesta del servidor");
+        
+        CATALOGO = await respuesta.json();
         renderizarCatalogo();
-      } catch (err) {
-        console.error(err);
-        contenedor.innerHTML = "<p style='text-align:center; grid-column: 1/-1; color:red;'>Error al obtener los datos del inventario.</p>";
+      } catch (error) {
+        console.error(error);
+        contenedor.className = "error-msg";
+        contenedor.innerHTML = "Error al obtener los datos del inventario. Por favor, verifica la configuración del Spreadsheet.";
       }
     }
 
     function renderizarCatalogo() {
       const contenedor = document.getElementById("contenedorProductos");
-      
-      if(!CATALOGO || CATALOGO.length === 0) {
-        contenedor.innerHTML = "<p style='text-align:center; grid-column: 1/-1;'>No hay productos configurados en la pestaña Inventario.</p>";
+      contenedor.className = "grid-productos";
+
+      if (!CATALOGO || CATALOGO.length === 0) {
+        contenedor.innerHTML = "<p style='text-align:center; grid-column: 1/-1;'>No hay productos registrados en el inventario.</p>";
         return;
       }
 
       contenedor.innerHTML = CATALOGO.map(p => {
-        const sinStock = p.stock <= 0;
+        const sinStock = p.stockTotal <= 0;
+        const tallasUnicas = [...new Set(p.variaciones.map(v => v.talla))];
+        const coloresUnicos = [...new Set(p.variaciones.map(v => v.color))];
         
+        // Imagen por defecto (primera variación válida)
+        const primeraFoto = p.fotos[0] || 'https://via.placeholder.com/300?text=Sin+Imagen';
+
         return `
-          <div class="card-producto ${sinStock ? 'producto-agotado' : ''}">
+          <div class="card-producto">
             ${sinStock ? '<span class="badge-agotado">AGOTADO</span>' : ''}
             
             <div class="gallery-container">
-              <img id="main-img-${p.id}" src="${p.fotos[0] || 'https://via.placeholder.com/300'}" class="main-img">
-              <div class="thumbs-grid">
-                ${p.fotos.length > 1 ? p.fotos.map((foto, idx) => `
-                  <img src="${foto}" class="thumb-img ${idx===0?'active':''}" onclick="cambiarFoto('${p.id}', '${foto}', this)">
-                `).join('') : ''}
-              </div>
+              <img id="img-${p.id}" src="${primeraFoto}" class="main-img" alt="${p.nombre}">
             </div>
 
             <div class="card-body">
               <div class="card-code">CÓDIGO: ${p.id}</div>
               <div class="card-title">${p.nombre}</div>
-              <div class="card-price">$${p.precio.toFixed(2)}</div>
+              <div class="card-price">S/. ${p.precio.toFixed(2)}</div>
               
-              <div class="stock-text" style="color: ${sinStock ? '#ff4757' : '#25D366'}">
-                ${sinStock ? 'Sin stock disponible' : `Stock: ${p.stock} un.`}
-              </div>
-
               <div class="form-option">
                 <div>
                   <label>Talla:</label>
-                  <select id="talla-${p.id}" class="card-select" ${sinStock ? 'disabled' : ''}>
-                    ${p.tallas.map(t => `<option value="${t}">${t}</option>`).join('')}
+                  <select id="talla-${p.id}" class="card-select" onchange="actualizarFotoYStock('${p.id}')" ${sinStock ? 'disabled' : ''}>
+                    ${tallasUnicas.map(t => `<option value="${t}">${t}</option>`).join('')}
                   </select>
                 </div>
                 <div>
                   <label>Color:</label>
-                  <select id="color-${p.id}" class="card-select" ${sinStock ? 'disabled' : ''}>
-                    ${p.colores.map(c => `<option value="${c}">${c}</option>`).join('')}
+                  <select id="color-${p.id}" class="card-select" onchange="actualizarFotoYStock('${p.id}')" ${sinStock ? 'disabled' : ''}>
+                    ${coloresUnicos.map(c => `<option value="${c}">${c}</option>`).join('')}
                   </select>
                 </div>
-                <div style="flex: 0.6;">
+                <div style="flex:0.6;">
                   <label>Cant:</label>
-                  <input type="number" id="cant-${p.id}" class="card-input" value="1" min="1" max="${p.stock}" ${sinStock ? 'disabled' : ''}>
+                  <input type="number" id="cant-${p.id}" class="card-input" value="1" min="1" ${sinStock ? 'disabled' : ''}>
                 </div>
               </div>
 
@@ -208,18 +133,19 @@
           </div>
         `;
       }).join('');
-
-      const selectZona = document.getElementById("selectZona");
-      selectZona.innerHTML = Object.keys(TARIFAS_DELIVERY).map(z => 
-        `<option value="${z}">${z} - $${TARIFAS_DELIVERY[z].toFixed(2)}</option>`
-      ).join('');
     }
 
-    function cambiarFoto(id, url, element) {
-      document.getElementById(`main-img-${id}`).src = url;
-      const thumbs = element.parentElement.querySelectorAll('.thumb-img');
-      thumbs.forEach(t => t.classList.remove('active'));
-      element.classList.add('active');
+    // Actualiza la imagen automáticamente cuando el usuario cambia la Talla o Color
+    function actualizarFotoYStock(idProducto) {
+      const prod = CATALOGO.find(p => p.id === idProducto);
+      const tallaSelec = document.getElementById(`talla-${idProducto}`).value;
+      const colorSelec = document.getElementById(`color-${idProducto}`).value;
+
+      const variante = prod.variaciones.find(v => v.talla === tallaSelec && v.color === colorSelec);
+
+      if (variante && variante.fotos && variante.fotos.length > 0) {
+        document.getElementById(`img-${idProducto}`).src = variante.fotos[0];
+      }
     }
 
     function agregarAlCarrito(idProducto) {
@@ -228,130 +154,32 @@
       const color = document.getElementById(`color-${idProducto}`).value;
       const cantidad = parseInt(document.getElementById(`cant-${idProducto}`).value) || 1;
 
-      if(cantidad > prod.stock) {
-        alert(`Solo quedan ${prod.stock} unidades disponibles.`);
+      const variante = prod.variaciones.find(v => v.talla === talla && v.color === color);
+      const stockDisponible = variante ? variante.stock : 0;
+
+      if (stockDisponible <= 0) {
+        alert("La combinación de Talla y Color seleccionada no cuenta con stock.");
+        return;
+      }
+
+      if (cantidad > stockDisponible) {
+        alert(`Solo quedan ${stockDisponible} unidades de la Talla ${talla} / Color ${color}.`);
         return;
       }
 
       carrito.push({
-        ...prod,
-        tallaElegida: talla,
-        colorElegido: color,
-        cantidad: cantidad,
-        totalItem: prod.precio * cantidad
+        id: prod.id,
+        nombre: prod.nombre,
+        precio: prod.precio,
+        talla: talla,
+        color: color,
+        cantidad: cantidad
       });
 
-      actualizarContador();
-      alert(`¡${cantidad}x ${prod.nombre} (${talla} / ${color}) agregado(s) al carrito!`);
+      alert(`Añadido al carrito: ${prod.nombre} (${talla} - ${color}) x${cantidad}`);
     }
 
-    function actualizarContador() {
-      const totalCant = carrito.reduce((acc, item) => acc + item.cantidad, 0);
-      document.getElementById("cartCount").innerText = totalCant;
-    }
-
-    function abrirCarrito() {
-      if(carrito.length === 0) { alert("El carrito está vacío."); return; }
-      renderizarCarrito();
-      document.getElementById("modalCarrito").classList.add("active");
-    }
-
-    function cerrarCarrito() {
-      document.getElementById("modalCarrito").classList.remove("active");
-    }
-
-    function renderizarCarrito() {
-      const lista = document.getElementById("listaCarrito");
-      lista.innerHTML = carrito.map((item, index) => `
-        <div class="cart-item">
-          <div>
-            <strong>${item.nombre}</strong><br>
-            <small>Talla: ${item.tallaElegida} | Color: ${item.colorElegido} | Cant: ${item.cantidad}</small><br>
-            <strong>$${item.totalItem.toFixed(2)}</strong>
-          </div>
-          <button onclick="eliminarItem(${index})" style="color:red; background:none; border:none; cursor:pointer;">Eliminar</button>
-        </div>
-      `).join('');
-      actualizarTotales();
-    }
-
-    function eliminarItem(index) {
-      carrito.splice(index, 1);
-      actualizarContador();
-      if(carrito.length === 0) cerrarCarrito();
-      else renderizarCarrito();
-    }
-
-    function actualizarTotales() {
-      const subtotal = carrito.reduce((sum, item) => sum + item.totalItem, 0);
-      const zona = document.getElementById("selectZona").value;
-      const costoDelivery = TARIFAS_DELIVERY[zona] || 0;
-      const total = subtotal + costoDelivery;
-
-      document.getElementById("txtSubtotal").innerText = `$${subtotal.toFixed(2)}`;
-      document.getElementById("txtDelivery").innerText = `$${costoDelivery.toFixed(2)}`;
-      document.getElementById("txtTotal").innerText = `$${total.toFixed(2)}`;
-    }
-
-    async function procesarPedido(e) {
-      e.preventDefault();
-      const btn = document.getElementById("btnEnviar");
-      btn.disabled = true;
-      btn.innerText = "Registrando pedido...";
-
-      const zona = document.getElementById("selectZona").value;
-      const subtotal = carrito.reduce((sum, item) => sum + item.totalItem, 0);
-      const costoDelivery = TARIFAS_DELIVERY[zona];
-      const total = subtotal + costoDelivery;
-      
-      const resumenProductos = carrito.map(i => `- ${i.cantidad}x ${i.nombre} (${i.tallaElegida}/${i.colorElegido}) [$${i.totalItem.toFixed(2)}]`).join('\n');
-
-      const payload = {
-        cliente: {
-          nombre: document.getElementById("nombre").value,
-          celular: document.getElementById("celular").value,
-          correo: document.getElementById("correo").value,
-          direccion: document.getElementById("direccion").value,
-          distrito: zona
-        },
-        resumenProductos: resumenProductos,
-        itemsComprados: carrito.map(i => ({ id: i.id, cantidad: i.cantidad })),
-        subtotal: subtotal,
-        costoDelivery: costoDelivery,
-        total: total
-      };
-
-      try {
-        await fetch(SCRIPT_URL, {
-          method: 'POST',
-          mode: 'no-cors',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify(payload)
-        });
-      } catch (err) { console.error(err); }
-
-      const msg = `Hola *Milady Import*, realicé un pedido:%0A%0A` +
-                  `*PRODUCTOS:*%0A${encodeURIComponent(resumenProductos)}%0A%0A` +
-                  `*Subtotal:* $${subtotal.toFixed(2)}%0A` +
-                  `*Delivery (${zona}):* $${costoDelivery.toFixed(2)}%0A` +
-                  `*TOTAL:* $${total.toFixed(2)}%0A%0A` +
-                  `*Cliente:* ${payload.cliente.nombre}%0A` +
-                  `*Correo:* ${payload.cliente.correo}%0A` +
-                  `*Dirección:* ${payload.cliente.direccion}`;
-
-      window.open(`https://wa.me/${NUMERO_WHATSAPP}?text=${msg}`, '_blank');
-
-      carrito = [];
-      actualizarContador();
-      cerrarCarrito();
-      btn.disabled = false;
-      btn.innerText = "Registrar Pedido y Enviar a WhatsApp";
-      
-      // Recargar catálogo para actualizar stock en la web
-      cargarProductosDesdeSheet();
-    }
-
-    cargarProductosDesdeSheet();
+    window.onload = cargarInventario;
   </script>
 </body>
 </html>
