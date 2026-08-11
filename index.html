@@ -334,6 +334,11 @@
       outline: none;
     }
 
+    .form-control-custom:disabled {
+      background-color: #F0F0F0;
+      cursor: not-allowed;
+    }
+
     .btn-add-cart {
       width: 100%;
       background: var(--primary);
@@ -351,8 +356,14 @@
       margin-top: auto;
     }
 
-    .btn-add-cart:hover {
+    .btn-add-cart:hover:not(:disabled) {
       background: var(--accent);
+    }
+
+    .btn-add-cart:disabled {
+      background-color: #CCCCCC !important;
+      color: #666666 !important;
+      cursor: not-allowed !important;
     }
 
     /* FOOTER CENTRADO */
@@ -594,7 +605,7 @@
         </div>
       </div>
 
-      <!-- REDES SOCIALES (CONFIGURA TUS ENLACES AQUÍ) -->
+      <!-- REDES SOCIALES -->
       <div class="footer-socials">
         <a href="https://facebook.com/MiladyImport" target="_blank" class="social-btn" title="Facebook">
           <i class="fa-brands fa-facebook-f"></i>
@@ -646,12 +657,21 @@
   </div>
 
   <script>
-    // COLOCA AQUÍ LA URL DE TU GOOGLE APPS SCRIPT
     const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbw2xukRqOSqU-CIrna8cEQWV_NTyS2_E1YLz6fa9aksTHBRs9H0QDz6_NKJjf-Hl5vGbA/exec";
 
     let catalogo = [];
     let carrito = [];
     let selecciones = {};
+
+    // SVG Interno seguro para la imagen por defecto con el nombre "Milady Import"
+    const imgMiladyImport = "data:image/svg+xml;charset=utf-8," + encodeURIComponent(`
+      <svg xmlns="http://www.w3.org/2000/svg" width="300" height="300" viewBox="0 0 300 300">
+        <rect width="100%" height="100%" fill="#FAF8F5"/>
+        <text x="50%" y="50%" dominant-baseline="middle" text-anchor="middle" font-family="'Cinzel', serif" font-size="20" font-weight="bold" fill="#C5A059">
+          MILADY IMPORT
+        </text>
+      </svg>
+    `);
 
     async function cargarProductos() {
       try {
@@ -668,13 +688,15 @@
       grid.innerHTML = "";
 
       catalogo.forEach(prod => {
-        const colores = Object.keys(prod.colores || {});
-        const primerColor = colores[0] || "";
+        const coloresKeys = Object.keys(prod.colores || {});
+        const primerColor = coloresKeys[0] || "";
+        const colorData = prod.colores?.[primerColor] || { tallas: [] };
+        const primeraTalla = colorData.tallas[0]?.talla || "";
         
         if (!selecciones[prod.id]) {
           selecciones[prod.id] = {
             color: primerColor,
-            talla: prod.colores[primerColor]?.tallas[0]?.talla || "",
+            talla: primeraTalla,
             imgIndex: 0
           };
         }
@@ -689,15 +711,30 @@
 
     function generarHTMLTarjeta(prod) {
       const sel = selecciones[prod.id];
-      const colorInfo = prod.colores[sel.color] || { fotos: [], tallas: [] };
-      const fotos = colorInfo.fotos.length > 0 ? colorInfo.fotos : [prod.fotoPrincipal];
-      const fotoActual = fotos[sel.imgIndex] || prod.fotoPrincipal || 'https://placehold.co/300x300?text=Milady+Import';
-      const coloresKeys = Object.keys(prod.colores);
+      const colorInfo = prod.colores?.[sel.color] || { fotos: [], tallas: [] };
+      const fotos = colorInfo.fotos && colorInfo.fotos.length > 0 ? colorInfo.fotos : [prod.fotoPrincipal];
+      
+      // Fallback de imagen con texto Milady Import
+      let fotoActual = fotos[sel.imgIndex] || prod.fotoPrincipal;
+      if (!fotoActual || fotoActual.trim() === '') fotoActual = imgMiladyImport;
 
-      let thumbsHTML = fotos.map((f, idx) => `
-        <img src="${f}" class="thumb-img ${idx === sel.imgIndex ? 'active' : ''}" 
-             onclick="cambiarImagen('${prod.id}', ${idx})" alt="Thumb">
-      `).join("");
+      const coloresKeys = Object.keys(prod.colores || {});
+
+      // Control de Stock y Estado
+      const itemTalla = colorInfo.tallas.find(t => t.talla === sel.talla);
+      const stockDisponible = itemTalla ? parseInt(itemTalla.stock) : 0;
+      
+      const esInvalido = stockDisponible <= 0 || !sel.talla || colorInfo.tallas.length === 0;
+      const textoBoton = (stockDisponible <= 0 || colorInfo.tallas.length === 0) ? 'NO DISPONIBLE' : '<i class="fa-solid fa-cart-plus"></i> AGREGAR AL CARRITO';
+
+      // Oculta miniaturas rotas
+      let thumbsHTML = fotos
+        .filter(f => f && f.trim() !== "")
+        .map((f, idx) => `
+          <img src="${f}" class="thumb-img ${idx === sel.imgIndex ? 'active' : ''}" 
+               onclick="cambiarImagen('${prod.id}', ${idx})" 
+               onerror="this.style.display='none'" alt="Thumb">
+        `).join("");
 
       let coloresHTML = coloresKeys.map(cKey => {
         const cData = prod.colores[cKey];
@@ -707,39 +744,42 @@
                      onclick="seleccionarColor('${prod.id}', '${cKey}')"></div>`;
       }).join("");
 
-      let tallasHTML = colorInfo.tallas.map(t => `
-        <option value="${t.talla}" ${t.talla === sel.talla ? 'selected' : ''}>
-          ${t.talla} (${t.stock} disp.)
-        </option>
-      `).join("");
+      let tallasHTML = colorInfo.tallas.map(t => {
+        const cant = parseInt(t.stock);
+        return `<option value="${t.talla}" ${t.talla === sel.talla ? 'selected' : ''}>
+                  ${t.talla} ${cant > 0 ? `(${cant} disp.)` : '(Agotado)'}
+                </option>`;
+      }).join("");
 
       return `
         <div class="product-gallery">
           <div class="thumbs-column">${thumbsHTML}</div>
           <div class="main-img-container">
-            <img src="${fotoActual}" class="main-img" alt="${prod.nombre}">
+            <img src="${fotoActual}" onerror="this.src='${imgMiladyImport}'" class="main-img" alt="${prod.nombre}">
           </div>
         </div>
         <div class="product-info">
           <span class="product-code">CÓDIGO: ${prod.id}</span>
           <h4 class="product-title">${prod.nombre}</h4>
-          <div class="product-price">S/ ${parseFloat(prod.precio).toFixed(2)}</div>
+          <div class="product-price">S/ ${parseFloat(prod.precio || 0).toFixed(2)}</div>
 
           <div class="selectors-group">
-            <span class="selector-label">COLOR: <strong style="color:var(--accent);">${sel.color}</strong></span>
+            <span class="selector-label">COLOR: <strong style="color:var(--accent);">${sel.color || 'N/A'}</strong></span>
             <div class="color-options">${coloresHTML}</div>
 
             <span class="selector-label">TALLA Y CANTIDAD</span>
             <div class="form-row">
-              <select class="form-control-custom" onchange="seleccionarTalla('${prod.id}', this.value)">
-                ${tallasHTML}
+              <select class="form-control-custom" onchange="seleccionarTalla('${prod.id}', this.value)" ${esInvalido ? 'disabled' : ''}>
+                ${tallasHTML || '<option value="">Sin Talla</option>'}
               </select>
-              <input type="number" class="form-control-custom" id="cant-${prod.id}" value="1" min="1" style="width:70px;">
+              <input type="number" class="form-control-custom" id="cant-${prod.id}" value="1" min="1" max="${stockDisponible}" style="width:70px;" ${esInvalido ? 'disabled' : ''}>
             </div>
           </div>
 
-          <button class="btn-add-cart" onclick="agregarAlCarrito('${prod.id}')">
-            <i class="fa-solid fa-cart-plus"></i> AGREGAR AL CARRITO
+          <button class="btn-add-cart" 
+                  onclick="agregarAlCarrito('${prod.id}')" 
+                  ${esInvalido ? 'disabled' : ''}>
+            ${textoBoton}
           </button>
         </div>
       `;
@@ -754,14 +794,19 @@
       selecciones[prodId].color = color;
       selecciones[prodId].imgIndex = 0;
       const prod = catalogo.find(p => p.id === prodId);
-      if (prod && prod.colores[color]?.tallas[0]) {
-        selecciones[prodId].talla = prod.colores[color].tallas[0].talla;
+      const colorData = prod?.colores[color];
+      
+      if (colorData && colorData.tallas[0]) {
+        selecciones[prodId].talla = colorData.tallas[0].talla;
+      } else {
+        selecciones[prodId].talla = "";
       }
       actualizarCard(prodId);
     }
 
     function seleccionarTalla(prodId, talla) {
       selecciones[prodId].talla = talla;
+      actualizarCard(prodId);
     }
 
     function actualizarCard(prodId) {
@@ -775,16 +820,37 @@
     function agregarAlCarrito(prodId) {
       const prod = catalogo.find(p => p.id === prodId);
       const sel = selecciones[prodId];
-      const cant = parseInt(document.getElementById(`cant-${prodId}`).value) || 1;
+      const colorInfo = prod.colores?.[sel.color];
+      const itemTalla = colorInfo?.tallas.find(t => t.talla === sel.talla);
+      const stockDisponible = itemTalla ? parseInt(itemTalla.stock) : 0;
 
-      carrito.push({
-        id: prod.id,
-        nombre: prod.nombre,
-        precio: prod.precio,
-        color: sel.color,
-        talla: sel.talla,
-        cantidad: cant
-      });
+      // Validación previa
+      if (!sel.talla || stockDisponible <= 0) return;
+
+      const inputCant = document.getElementById(`cant-${prodId}`);
+      const cantidadSolicitada = parseInt(inputCant ? inputCant.value : 1);
+
+      // Unificación de duplicados (Mismo id, color y talla)
+      const itemExistente = carrito.find(item => 
+        item.id === prod.id && item.color === sel.color && item.talla === sel.talla
+      );
+
+      if (itemExistente) {
+        if (itemExistente.cantidad + cantidadSolicitada > stockDisponible) {
+          itemExistente.cantidad = stockDisponible;
+        } else {
+          itemExistente.cantidad += cantidadSolicitada;
+        }
+      } else {
+        carrito.push({
+          id: prod.id,
+          nombre: prod.nombre,
+          precio: prod.precio,
+          color: sel.color,
+          talla: sel.talla,
+          cantidad: Math.min(cantidadSolicitada, stockDisponible)
+        });
+      }
 
       actualizarContadorCarrito();
       alert("¡Producto agregado al carrito con éxito!");
