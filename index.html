@@ -279,34 +279,7 @@
       font-size: 1.3rem;
       font-weight: 700;
       color: #900C3F;
-      margin-bottom: 12px;
-    }
-
-    /* ESTILO DE LA SECCIÓN CARACTERÍSTICAS DEL PRODUCTO */
-    .product-features {
-      background: #FAF9F6;
-      border: 1px dashed var(--border-color);
-      border-radius: 6px;
-      padding: 10px 12px;
       margin-bottom: 15px;
-      font-size: 0.8rem;
-      color: #444;
-    }
-
-    .product-features-title {
-      font-weight: 700;
-      color: var(--primary);
-      text-transform: uppercase;
-      font-size: 0.72rem;
-      letter-spacing: 0.5px;
-      margin-bottom: 4px;
-      display: flex;
-      align-items: center;
-      gap: 6px;
-    }
-
-    .product-features-title i {
-      color: var(--accent);
     }
 
     .selector-label {
@@ -797,6 +770,11 @@
         ? 'NO DISPONIBLE' 
         : '<i class="fa-solid fa-cart-plus"></i> AGREGAR AL CARRITO';
 
+      // Textos y Nombre (Nombre + Descripción integrados)
+      const tituloConDescripcion = prod.descripcion && prod.descripcion.trim() !== "" 
+        ? `${prod.nombre}: ${prod.descripcion}` 
+        : prod.nombre;
+
       const hexTexto = colorInfo.hex ? ` (${colorInfo.hex.toUpperCase()})` : '';
       const etiquetaColor = sel.color ? `${sel.color}${hexTexto}` : 'N/A';
 
@@ -825,17 +803,6 @@
           </div>`;
       }
 
-      // Detalle y Características de la prenda
-      let caracteristicasHTML = "";
-      if (prod.descripcion && prod.descripcion.trim() !== "") {
-        caracteristicasHTML = `
-          <div class="product-features">
-            <div class="product-features-title"><i class="fa-solid fa-circle-info"></i> Características de la Prenda</div>
-            <div>${prod.descripcion}</div>
-          </div>
-        `;
-      }
-
       // Opciones de Colores y Tallas
       const coloresKeys = Object.keys(prod.colores || {});
       let coloresHTML = coloresKeys.map(cKey => {
@@ -857,10 +824,8 @@
         ${galeriaHTML}
         <div class="product-info">
           <span class="product-code">CÓDIGO: ${prod.id}</span>
-          <h4 class="product-title">${prod.nombre}</h4>
+          <h4 class="product-title">${tituloConDescripcion}</h4>
           <div class="product-price">S/ ${parseFloat(prod.precio || 0).toFixed(2)}</div>
-
-          ${caracteristicasHTML}
 
           <div class="selectors-group">
             <span class="selector-label">COLOR: <strong style="color:var(--accent); text-transform:uppercase;">${etiquetaColor}</strong></span>
