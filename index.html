@@ -696,40 +696,54 @@
       });
     }
 
-  function generarHTMLTarjeta(prod) {
+ function generarHTMLTarjeta(prod) {
   const sel = selecciones[prod.id];
   const colorInfo = prod.colores?.[sel.color] || { fotos: [], tallas: [], hex: "#000000" };
   
-  // Filtrar únicamente URLs válidas
+  // 1. Filtrar únicamente URLs válidas que inicien con http/https
   const fotosValidas = (colorInfo.fotos && colorInfo.fotos.length > 0 ? colorInfo.fotos : [prod.fotoPrincipal])
-    .filter(f => f && f.toString().trim() !== "");
+    .filter(f => f && typeof f === 'string' && f.trim().toLowerCase().startsWith('http'));
 
   const tieneFotos = fotosValidas.length > 0;
-  let fotoActual = tieneFotos ? fotosValidas[sel.imgIndex] || fotosValidas[0] : imgMiladyImport;
+  let fotoActual = tieneFotos ? (fotosValidas[sel.imgIndex] || fotosValidas[0]) : imgMiladyImport;
 
-  const coloresKeys = Object.keys(prod.colores || {});
-  const itemTalla = colorInfo.tallas.find(t => t.talla === sel.talla);
+  // 2. Lógica inteligente de selección de Talla
+  const tieneStockEnColor = colorInfo.tallas.some(t => parseInt(t.stock) > 0);
+
+  // Si la talla seleccionada no tiene stock, busca automáticamente la primera talla disponible
+  let tallaSeleccionada = sel.talla;
+  const itemTallaActual = colorInfo.tallas.find(t => t.talla === tallaSeleccionada);
+  
+  if (!tallaSeleccionada || !itemTallaActual || parseInt(itemTallaActual.stock) <= 0) {
+    const primeraConStock = colorInfo.tallas.find(t => parseInt(t.stock) > 0);
+    if (primeraConStock) {
+      tallaSeleccionada = primeraConStock.talla;
+      sel.talla = tallaSeleccionada; 
+    }
+  }
+
+  const itemTalla = colorInfo.tallas.find(t => t.talla === tallaSeleccionada);
   const stockDisponible = itemTalla ? parseInt(itemTalla.stock) : 0;
   
-  const esInvalido = stockDisponible <= 0 || !sel.talla || colorInfo.tallas.length === 0;
-  const textoBoton = (stockDisponible <= 0 || colorInfo.tallas.length === 0) 
+  // El selector se inhabilita SOLO si NINGUNA talla tiene stock
+  const selectDeshabilitado = !tieneStockEnColor || colorInfo.tallas.length === 0;
+  const botonDeshabilitado = stockDisponible <= 0 || selectDeshabilitado;
+  
+  const textoBoton = botonDeshabilitado 
     ? 'NO DISPONIBLE' 
     : '<i class="fa-solid fa-cart-plus"></i> AGREGAR AL CARRITO';
 
-  // Formato: Nombre + Descripción
+  // Textos y Nombre
   const tituloConDescripcion = prod.descripcion && prod.descripcion.trim() !== "" 
     ? `${prod.nombre}: ${prod.descripcion}` 
     : prod.nombre;
 
-  // Formato: Color + (HEX_COLOR)
   const hexTexto = colorInfo.hex ? ` (${colorInfo.hex.toUpperCase()})` : '';
   const etiquetaColor = sel.color ? `${sel.color}${hexTexto}` : 'N/A';
 
-  // Construcción de la galería dependiendo de si existen fotos reales o no
+  // 3. Renderizado de Galería
   let galeriaHTML = "";
-  
   if (tieneFotos) {
-    // Si tiene fotos reales: Muestra columna de miniaturas a la izquierda + foto principal
     const thumbsHTML = fotosValidas.map((f, idx) => `
       <img src="${f}" class="thumb-img ${idx === sel.imgIndex ? 'active' : ''}" 
            onclick="cambiarImagen('${prod.id}', ${idx})" 
@@ -744,15 +758,17 @@
         </div>
       </div>`;
   } else {
-    // Si NO tiene fotos: Oculta la columna izquierda y centra el placeholder elegantemente
+    // Diseño centrado para productos sin fotos
     galeriaHTML = `
       <div class="product-gallery" style="justify-content: center; padding: 20px;">
-        <div class="main-img-container" style="max-width: 260px; height: 260px;">
-          <img src="${imgMiladyImport}" class="main-img" style="object-fit: contain; padding: 10px;" alt="${prod.nombre}">
+        <div class="main-img-container" style="max-width: 260px; height: 260px; width: 100%;">
+          <img src="${imgMiladyImport}" class="main-img" style="object-fit: contain; padding: 10px; width: 100%; height: 100%;" alt="${prod.nombre}">
         </div>
       </div>`;
   }
 
+  // Opciones de Colores y Tallas
+  const coloresKeys = Object.keys(prod.colores || {});
   let coloresHTML = coloresKeys.map(cKey => {
     const cData = prod.colores[cKey];
     return `<div class="color-circle ${cKey === sel.color ? 'active' : ''}" 
@@ -763,7 +779,7 @@
 
   let tallasHTML = colorInfo.tallas.map(t => {
     const cant = parseInt(t.stock);
-    return `<option value="${t.talla}" ${t.talla === sel.talla ? 'selected' : ''}>
+    return `<option value="${t.talla}" ${t.talla === tallaSeleccionada ? 'selected' : ''}>
               ${t.talla} ${cant > 0 ? `(${cant} disp.)` : '(Agotado)'}
             </option>`;
   }).join("");
@@ -781,16 +797,16 @@
 
         <span class="selector-label">TALLA Y CANTIDAD</span>
         <div class="form-row">
-          <select class="form-control-custom" onchange="seleccionarTalla('${prod.id}', this.value)" ${esInvalido ? 'disabled' : ''}>
+          <select class="form-control-custom" onchange="seleccionarTalla('${prod.id}', this.value)" ${selectDeshabilitado ? 'disabled' : ''}>
             ${tallasHTML || '<option value="">Sin Talla</option>'}
           </select>
-          <input type="number" class="form-control-custom" id="cant-${prod.id}" value="1" min="1" max="${stockDisponible}" style="width:70px;" ${esInvalido ? 'disabled' : ''}>
+          <input type="number" class="form-control-custom" id="cant-${prod.id}" value="1" min="1" max="${stockDisponible}" style="width:70px;" ${botonDeshabilitado ? 'disabled' : ''}>
         </div>
       </div>
 
       <button class="btn-add-cart" 
               onclick="agregarAlCarrito('${prod.id}')" 
-              ${esInvalido ? 'disabled' : ''}>
+              ${botonDeshabilitado ? 'disabled' : ''}>
         ${textoBoton}
       </button>
     </div>
