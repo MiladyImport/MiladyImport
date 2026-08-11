@@ -663,12 +663,17 @@
     let carrito = [];
     let selecciones = {};
 
-    // SVG Interno seguro para la imagen por defecto con el nombre "Milady Import"
+    // 3. Marca de agua dentro de marco elegante
     const imgMiladyImport = "data:image/svg+xml;charset=utf-8," + encodeURIComponent(`
-      <svg xmlns="http://www.w3.org/2000/svg" width="300" height="300" viewBox="0 0 300 300">
-        <rect width="100%" height="100%" fill="#FAF8F5"/>
-        <text x="50%" y="50%" dominant-baseline="middle" text-anchor="middle" font-family="'Cinzel', serif" font-size="20" font-weight="bold" fill="#C5A059">
-          MILADY IMPORT
+      <svg xmlns="http://www.w3.org/2000/svg" width="400" height="400" viewBox="0 0 400 400">
+        <rect width="100%" height="100%" fill="#FAF9F6"/>
+        <rect x="20" y="20" width="360" height="360" fill="none" stroke="#C5A059" stroke-width="2"/>
+        <rect x="28" y="28" width="344" height="344" fill="none" stroke="#C5A059" stroke-width="0.8" stroke-dasharray="4,4"/>
+        <text x="50%" y="46%" dominant-baseline="middle" text-anchor="middle" font-family="'Cinzel', serif" font-size="22" font-weight="800" fill="#C5A059" opacity="0.35" letter-spacing="4">
+          MILADY
+        </text>
+        <text x="50%" y="54%" dominant-baseline="middle" text-anchor="middle" font-family="'Cinzel', serif" font-size="16" font-weight="700" fill="#121212" opacity="0.25" letter-spacing="3">
+          IMPORT
         </text>
       </svg>
     `);
@@ -714,26 +719,23 @@
       const colorInfo = prod.colores?.[sel.color] || { fotos: [], tallas: [] };
       const fotos = colorInfo.fotos && colorInfo.fotos.length > 0 ? colorInfo.fotos : [prod.fotoPrincipal];
       
-      // Fallback de imagen con texto Milady Import
       let fotoActual = fotos[sel.imgIndex] || prod.fotoPrincipal;
       if (!fotoActual || fotoActual.trim() === '') fotoActual = imgMiladyImport;
 
       const coloresKeys = Object.keys(prod.colores || {});
 
-      // Control de Stock y Estado
       const itemTalla = colorInfo.tallas.find(t => t.talla === sel.talla);
       const stockDisponible = itemTalla ? parseInt(itemTalla.stock) : 0;
       
       const esInvalido = stockDisponible <= 0 || !sel.talla || colorInfo.tallas.length === 0;
       const textoBoton = (stockDisponible <= 0 || colorInfo.tallas.length === 0) ? 'NO DISPONIBLE' : '<i class="fa-solid fa-cart-plus"></i> AGREGAR AL CARRITO';
 
-      // Oculta miniaturas rotas
       let thumbsHTML = fotos
         .filter(f => f && f.trim() !== "")
         .map((f, idx) => `
           <img src="${f}" class="thumb-img ${idx === sel.imgIndex ? 'active' : ''}" 
                onclick="cambiarImagen('${prod.id}', ${idx})" 
-               onerror="this.style.display='none'" alt="Thumb">
+               onerror="this.src='${imgMiladyImport}'" alt="Thumb">
         `).join("");
 
       let coloresHTML = coloresKeys.map(cKey => {
@@ -817,29 +819,36 @@
       }
     }
 
+    // 1. Mostrar alerta si intenta agregar cantidad mayor al stock
     function agregarAlCarrito(prodId) {
       const prod = catalogo.find(p => p.id === prodId);
       const sel = selecciones[prodId];
-      const colorInfo = prod.colores?.[sel.color];
+      const colorInfo = prod?.colores?.[sel.color];
       const itemTalla = colorInfo?.tallas.find(t => t.talla === sel.talla);
       const stockDisponible = itemTalla ? parseInt(itemTalla.stock) : 0;
 
-      // Validación previa
       if (!sel.talla || stockDisponible <= 0) return;
 
       const inputCant = document.getElementById(`cant-${prodId}`);
-      const cantidadSolicitada = parseInt(inputCant ? inputCant.value : 1);
+      let cantidadSolicitada = parseInt(inputCant ? inputCant.value : 1) || 1;
 
-      // Unificación de duplicados (Mismo id, color y talla)
+      if (cantidadSolicitada > stockDisponible) {
+        alert(`Atención: La cantidad ingresada excede el stock disponible. Solo se pueden agregar hasta ${stockDisponible} unidad(es).`);
+        inputCant.value = stockDisponible;
+        cantidadSolicitada = stockDisponible;
+      }
+
       const itemExistente = carrito.find(item => 
         item.id === prod.id && item.color === sel.color && item.talla === sel.talla
       );
 
       if (itemExistente) {
         if (itemExistente.cantidad + cantidadSolicitada > stockDisponible) {
+          alert(`No se pueden agregar más unidades. Ya tienes ${itemExistente.cantidad} en el carrito y el stock total es de ${stockDisponible}.`);
           itemExistente.cantidad = stockDisponible;
         } else {
           itemExistente.cantidad += cantidadSolicitada;
+          alert("¡Producto agregado al carrito con éxito!");
         }
       } else {
         carrito.push({
@@ -848,12 +857,12 @@
           precio: prod.precio,
           color: sel.color,
           talla: sel.talla,
-          cantidad: Math.min(cantidadSolicitada, stockDisponible)
+          cantidad: cantidadSolicitada
         });
+        alert("¡Producto agregado al carrito con éxito!");
       }
 
       actualizarContadorCarrito();
-      alert("¡Producto agregado al carrito con éxito!");
     }
 
     function actualizarContadorCarrito() {
@@ -905,6 +914,7 @@
       document.getElementById("modalCarrito").classList.remove("active");
     }
 
+    // 2. Validación de Stock Real al finalizar pedido y actualización
     async function procesarPedido(e) {
       e.preventDefault();
       if (carrito.length === 0) {
@@ -914,27 +924,60 @@
 
       const btn = document.getElementById("btnSubmit");
       btn.disabled = true;
-      btn.innerText = "PROCESANDO PEDIDO...";
-
-      const total = carrito.reduce((sum, item) => sum + (item.precio * item.cantidad), 0);
-
-      const payload = {
-        cliente: {
-          nombres: document.getElementById("cNombre").value,
-          dni: document.getElementById("cDni").value,
-          correo: document.getElementById("cCorreo").value,
-          celular: document.getElementById("cCelular").value,
-          telefono: document.getElementById("cTelefono").value,
-          departamento: document.getElementById("cDepa").value,
-          provincia: document.getElementById("cProv").value,
-          distrito: document.getElementById("cDist").value,
-          direccion: document.getElementById("cDir").value
-        },
-        carrito: carrito,
-        total: total
-      };
+      btn.innerText = "VERIFICANDO STOCK Y PROCESANDO...";
 
       try {
+        // Obtiene inventario actualizado
+        const resCat = await fetch(SCRIPT_URL);
+        const catalogoActualizado = await resCat.json();
+        
+        let conflictoStock = false;
+        let mensajeError = "Atención: Los siguientes productos sufrieron cambios en el stock disponible:\n\n";
+
+        carrito.forEach(item => {
+          const prodActual = catalogoActualizado.find(p => p.id === item.id);
+          const colorActual = prodActual?.colores?.[item.color];
+          const tallaActual = colorActual?.tallas?.find(t => t.talla === item.talla);
+          const stockReal = tallaActual ? parseInt(tallaActual.stock) : 0;
+
+          if (stockReal < item.cantidad) {
+            conflictoStock = true;
+            if (stockReal <= 0) {
+              mensajeError += `- ${item.nombre} (${item.color} / ${item.talla}): AGOTADO por otra compra reciente.\n`;
+            } else {
+              mensajeError += `- ${item.nombre} (${item.color} / ${item.talla}): Stock disponible disminuyó a ${stockReal} unid(s).\n`;
+            }
+          }
+        });
+
+        if (conflictoStock) {
+          alert(mensajeError + "\nPor favor ajuste la cantidad o elimine el producto de su carrito para proceder.");
+          catalogo = catalogoActualizado;
+          renderizarCatalogo();
+          abrirCarrito();
+          btn.disabled = false;
+          btn.innerText = "FINALIZAR COMPRA";
+          return;
+        }
+
+        const total = carrito.reduce((sum, item) => sum + (item.precio * item.cantidad), 0);
+
+        const payload = {
+          cliente: {
+            nombres: document.getElementById("cNombre").value,
+            dni: document.getElementById("cDni").value,
+            correo: document.getElementById("cCorreo").value,
+            celular: document.getElementById("cCelular").value,
+            telefono: document.getElementById("cTelefono").value,
+            departamento: document.getElementById("cDepa").value,
+            provincia: document.getElementById("cProv").value,
+            distrito: document.getElementById("cDist").value,
+            direccion: document.getElementById("cDir").value
+          },
+          carrito: carrito,
+          total: total
+        };
+
         const res = await fetch(SCRIPT_URL, {
           method: "POST",
           body: JSON.stringify(payload)
@@ -946,6 +989,8 @@
           carrito = [];
           actualizarContadorCarrito();
           cerrarCarrito();
+          // Actualiza automáticamente la página tras finalizar pedido
+          window.location.reload();
         } else {
           alert("Error al registrar el pedido: " + data.message);
         }
