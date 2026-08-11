@@ -696,87 +696,106 @@
       });
     }
 
-    function generarHTMLTarjeta(prod) {
-      const sel = selecciones[prod.id];
-      const colorInfo = prod.colores?.[sel.color] || { fotos: [], tallas: [], hex: "#000000" };
-      const fotos = colorInfo.fotos && colorInfo.fotos.length > 0 ? colorInfo.fotos : [prod.fotoPrincipal];
-      
-      let fotoActual = fotos[sel.imgIndex] || prod.fotoPrincipal;
-      if (!fotoActual || fotoActual.trim() === '') fotoActual = imgMiladyImport;
+  function generarHTMLTarjeta(prod) {
+  const sel = selecciones[prod.id];
+  const colorInfo = prod.colores?.[sel.color] || { fotos: [], tallas: [], hex: "#000000" };
+  
+  // Filtrar únicamente URLs válidas
+  const fotosValidas = (colorInfo.fotos && colorInfo.fotos.length > 0 ? colorInfo.fotos : [prod.fotoPrincipal])
+    .filter(f => f && f.toString().trim() !== "");
 
-      const coloresKeys = Object.keys(prod.colores || {});
+  const tieneFotos = fotosValidas.length > 0;
+  let fotoActual = tieneFotos ? fotosValidas[sel.imgIndex] || fotosValidas[0] : imgMiladyImport;
 
-      const itemTalla = colorInfo.tallas.find(t => t.talla === sel.talla);
-      const stockDisponible = itemTalla ? parseInt(itemTalla.stock) : 0;
-      
-      const esInvalido = stockDisponible <= 0 || !sel.talla || colorInfo.tallas.length === 0;
-      const textoBoton = (stockDisponible <= 0 || colorInfo.tallas.length === 0) ? 'NO DISPONIBLE' : '<i class="fa-solid fa-cart-plus"></i> AGREGAR AL CARRITO';
+  const coloresKeys = Object.keys(prod.colores || {});
+  const itemTalla = colorInfo.tallas.find(t => t.talla === sel.talla);
+  const stockDisponible = itemTalla ? parseInt(itemTalla.stock) : 0;
+  
+  const esInvalido = stockDisponible <= 0 || !sel.talla || colorInfo.tallas.length === 0;
+  const textoBoton = (stockDisponible <= 0 || colorInfo.tallas.length === 0) 
+    ? 'NO DISPONIBLE' 
+    : '<i class="fa-solid fa-cart-plus"></i> AGREGAR AL CARRITO';
 
-      // FORMATO REQUERIDO 1: Nombre + Descripción
-      const tituloConDescripcion = prod.descripcion && prod.descripcion.trim() !== "" 
-        ? `${prod.nombre}: ${prod.descripcion}` 
-        : prod.nombre;
+  // Formato: Nombre + Descripción
+  const tituloConDescripcion = prod.descripcion && prod.descripcion.trim() !== "" 
+    ? `${prod.nombre}: ${prod.descripcion}` 
+    : prod.nombre;
 
-      // FORMATO REQUERIDO 2: Color + (HEX_COLOR)
-      const hexTexto = colorInfo.hex ? ` (${colorInfo.hex.toUpperCase()})` : '';
-      const etiquetaColor = sel.color ? `${sel.color}${hexTexto}` : 'N/A';
+  // Formato: Color + (HEX_COLOR)
+  const hexTexto = colorInfo.hex ? ` (${colorInfo.hex.toUpperCase()})` : '';
+  const etiquetaColor = sel.color ? `${sel.color}${hexTexto}` : 'N/A';
 
-      let thumbsHTML = fotos
-        .filter(f => f && f.trim() !== "")
-        .map((f, idx) => `
-          <img src="${f}" class="thumb-img ${idx === sel.imgIndex ? 'active' : ''}" 
-               onclick="cambiarImagen('${prod.id}', ${idx})" 
-               onerror="this.src='${imgMiladyImport}'" alt="Thumb">
-        `).join("");
+  // Construcción de la galería dependiendo de si existen fotos reales o no
+  let galeriaHTML = "";
+  
+  if (tieneFotos) {
+    // Si tiene fotos reales: Muestra columna de miniaturas a la izquierda + foto principal
+    const thumbsHTML = fotosValidas.map((f, idx) => `
+      <img src="${f}" class="thumb-img ${idx === sel.imgIndex ? 'active' : ''}" 
+           onclick="cambiarImagen('${prod.id}', ${idx})" 
+           onerror="this.src='${imgMiladyImport}'" alt="Thumb">
+    `).join("");
 
-      let coloresHTML = coloresKeys.map(cKey => {
-        const cData = prod.colores[cKey];
-        return `<div class="color-circle ${cKey === sel.color ? 'active' : ''}" 
-                     style="background-color: ${cData.hex}" 
-                     title="${cKey} (${cData.hex})"
-                     onclick="seleccionarColor('${prod.id}', '${cKey}')"></div>`;
-      }).join("");
-
-      let tallasHTML = colorInfo.tallas.map(t => {
-        const cant = parseInt(t.stock);
-        return `<option value="${t.talla}" ${t.talla === sel.talla ? 'selected' : ''}>
-                  ${t.talla} ${cant > 0 ? `(${cant} disp.)` : '(Agotado)'}
-                </option>`;
-      }).join("");
-
-      return `
-        <div class="product-gallery">
-          <div class="thumbs-column">${thumbsHTML}</div>
-          <div class="main-img-container">
-            <img src="${fotoActual}" onerror="this.src='${imgMiladyImport}'" class="main-img" alt="${prod.nombre}">
-          </div>
+    galeriaHTML = `
+      <div class="product-gallery">
+        <div class="thumbs-column">${thumbsHTML}</div>
+        <div class="main-img-container">
+          <img src="${fotoActual}" onerror="this.src='${imgMiladyImport}'" class="main-img" alt="${prod.nombre}">
         </div>
-        <div class="product-info">
-          <span class="product-code">CÓDIGO: ${prod.id}</span>
-          <h4 class="product-title">${tituloConDescripcion}</h4>
-          <div class="product-price">S/ ${parseFloat(prod.precio || 0).toFixed(2)}</div>
-
-          <div class="selectors-group">
-            <span class="selector-label">COLOR: <strong style="color:var(--accent); text-transform:uppercase;">${etiquetaColor}</strong></span>
-            <div class="color-options">${coloresHTML}</div>
-
-            <span class="selector-label">TALLA Y CANTIDAD</span>
-            <div class="form-row">
-              <select class="form-control-custom" onchange="seleccionarTalla('${prod.id}', this.value)" ${esInvalido ? 'disabled' : ''}>
-                ${tallasHTML || '<option value="">Sin Talla</option>'}
-              </select>
-              <input type="number" class="form-control-custom" id="cant-${prod.id}" value="1" min="1" max="${stockDisponible}" style="width:70px;" ${esInvalido ? 'disabled' : ''}>
-            </div>
-          </div>
-
-          <button class="btn-add-cart" 
-                  onclick="agregarAlCarrito('${prod.id}')" 
-                  ${esInvalido ? 'disabled' : ''}>
-            ${textoBoton}
-          </button>
+      </div>`;
+  } else {
+    // Si NO tiene fotos: Oculta la columna izquierda y centra el placeholder elegantemente
+    galeriaHTML = `
+      <div class="product-gallery" style="justify-content: center; padding: 20px;">
+        <div class="main-img-container" style="max-width: 260px; height: 260px;">
+          <img src="${imgMiladyImport}" class="main-img" style="object-fit: contain; padding: 10px;" alt="${prod.nombre}">
         </div>
-      `;
-    }
+      </div>`;
+  }
+
+  let coloresHTML = coloresKeys.map(cKey => {
+    const cData = prod.colores[cKey];
+    return `<div class="color-circle ${cKey === sel.color ? 'active' : ''}" 
+                 style="background-color: ${cData.hex}" 
+                 title="${cKey} (${cData.hex})"
+                 onclick="seleccionarColor('${prod.id}', '${cKey}')"></div>`;
+  }).join("");
+
+  let tallasHTML = colorInfo.tallas.map(t => {
+    const cant = parseInt(t.stock);
+    return `<option value="${t.talla}" ${t.talla === sel.talla ? 'selected' : ''}>
+              ${t.talla} ${cant > 0 ? `(${cant} disp.)` : '(Agotado)'}
+            </option>`;
+  }).join("");
+
+  return `
+    ${galeriaHTML}
+    <div class="product-info">
+      <span class="product-code">CÓDIGO: ${prod.id}</span>
+      <h4 class="product-title">${tituloConDescripcion}</h4>
+      <div class="product-price">S/ ${parseFloat(prod.precio || 0).toFixed(2)}</div>
+
+      <div class="selectors-group">
+        <span class="selector-label">COLOR: <strong style="color:var(--accent); text-transform:uppercase;">${etiquetaColor}</strong></span>
+        <div class="color-options">${coloresHTML || '<p style="font-size:0.8rem; color:#888;">N/A</p>'}</div>
+
+        <span class="selector-label">TALLA Y CANTIDAD</span>
+        <div class="form-row">
+          <select class="form-control-custom" onchange="seleccionarTalla('${prod.id}', this.value)" ${esInvalido ? 'disabled' : ''}>
+            ${tallasHTML || '<option value="">Sin Talla</option>'}
+          </select>
+          <input type="number" class="form-control-custom" id="cant-${prod.id}" value="1" min="1" max="${stockDisponible}" style="width:70px;" ${esInvalido ? 'disabled' : ''}>
+        </div>
+      </div>
+
+      <button class="btn-add-cart" 
+              onclick="agregarAlCarrito('${prod.id}')" 
+              ${esInvalido ? 'disabled' : ''}>
+        ${textoBoton}
+      </button>
+    </div>
+  `;
+}
 
     function cambiarImagen(prodId, idx) {
       selecciones[prodId].imgIndex = idx;
