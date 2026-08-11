@@ -235,6 +235,7 @@
       display: flex;
       align-items: center;
       justify-content: center;
+      position: relative;
     }
 
     .main-img {
@@ -242,6 +243,7 @@
       height: 100%;
       object-fit: cover;
       transition: transform 0.4s ease;
+      cursor: zoom-in;
     }
 
     .product-card:hover .main-img {
@@ -264,22 +266,47 @@
       margin-bottom: 4px;
     }
 
-    /* CAMBIO DE TIPOGRAFÍA Y ESTILO DEL TÍTULO */
     .product-title {
-      font-family: var(--font-body); /* Montserrat en lugar de Cinzel */
+      font-family: var(--font-body);
       font-size: 0.95rem;
       font-weight: 600;
       color: var(--primary);
       margin-bottom: 8px;
       line-height: 1.45;
-      text-transform: none; /* Mantiene la capitalización natural */
     }
 
     .product-price {
       font-size: 1.3rem;
       font-weight: 700;
       color: #900C3F;
+      margin-bottom: 12px;
+    }
+
+    /* ESTILO DE LA SECCIÓN CARACTERÍSTICAS DEL PRODUCTO */
+    .product-features {
+      background: #FAF9F6;
+      border: 1px dashed var(--border-color);
+      border-radius: 6px;
+      padding: 10px 12px;
       margin-bottom: 15px;
+      font-size: 0.8rem;
+      color: #444;
+    }
+
+    .product-features-title {
+      font-weight: 700;
+      color: var(--primary);
+      text-transform: uppercase;
+      font-size: 0.72rem;
+      letter-spacing: 0.5px;
+      margin-bottom: 4px;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .product-features-title i {
+      color: var(--accent);
     }
 
     .selector-label {
@@ -529,6 +556,38 @@
 
     .btn-submit-order:hover { background: var(--accent-hover); }
 
+    /* ESTILOS PARA EL LIGHTBOX / MODAL DE AMPLIACIÓN DE IMAGEN */
+    .image-modal {
+      display: none;
+      position: fixed;
+      z-index: 9999;
+      left: 0;
+      top: 0;
+      width: 100%;
+      height: 100%;
+      background-color: rgba(0, 0, 0, 0.88);
+      justify-content: center;
+      align-items: center;
+      cursor: pointer;
+    }
+
+    .modal-content-img {
+      max-width: 90%;
+      max-height: 90%;
+      border-radius: 8px;
+      box-shadow: 0 4px 25px rgba(0,0,0,0.6);
+      object-fit: contain;
+    }
+
+    .close-img-modal {
+      position: absolute;
+      top: 20px;
+      right: 30px;
+      color: #FFF;
+      font-size: 40px;
+      font-weight: bold;
+    }
+
     @media (max-width: 600px) {
       .checkout-form { grid-template-columns: 1fr; }
       .checkout-form .full-width { grid-column: span 1; }
@@ -614,6 +673,7 @@
     </div>
   </a>
 
+  <!-- MODAL CARRITO -->
   <div class="modal-overlay" id="modalCarrito">
     <div class="modal-card">
       <div class="modal-header">
@@ -637,6 +697,12 @@
         <button type="submit" class="btn-submit-order" id="btnSubmit">FINALIZAR COMPRA</button>
       </form>
     </div>
+  </div>
+
+  <!-- MODAL AMPLIAR IMAGEN -->
+  <div id="imageModal" class="image-modal" onclick="cerrarModalImagen()">
+    <span class="close-img-modal">&times;</span>
+    <img class="modal-content-img" id="imgModalAmpliada" src="">
   </div>
 
   <script>
@@ -696,122 +762,127 @@
       });
     }
 
- function generarHTMLTarjeta(prod) {
-  const sel = selecciones[prod.id];
-  const colorInfo = prod.colores?.[sel.color] || { fotos: [], tallas: [], hex: "#000000" };
-  
-  // 1. Filtrar únicamente URLs válidas que inicien con http/https
-  const fotosValidas = (colorInfo.fotos && colorInfo.fotos.length > 0 ? colorInfo.fotos : [prod.fotoPrincipal])
-    .filter(f => f && typeof f === 'string' && f.trim().toLowerCase().startsWith('http'));
+    function generarHTMLTarjeta(prod) {
+      const sel = selecciones[prod.id];
+      const colorInfo = prod.colores?.[sel.color] || { fotos: [], tallas: [], hex: "#000000" };
+      
+      // 1. Filtrar únicamente URLs válidas que inicien con http/https
+      const fotosValidas = (colorInfo.fotos && colorInfo.fotos.length > 0 ? colorInfo.fotos : [prod.fotoPrincipal])
+        .filter(f => f && typeof f === 'string' && f.trim().toLowerCase().startsWith('http'));
 
-  const tieneFotos = fotosValidas.length > 0;
-  let fotoActual = tieneFotos ? (fotosValidas[sel.imgIndex] || fotosValidas[0]) : imgMiladyImport;
+      const tieneFotos = fotosValidas.length > 0;
+      let fotoActual = tieneFotos ? (fotosValidas[sel.imgIndex] || fotosValidas[0]) : imgMiladyImport;
 
-  // 2. Lógica inteligente de selección de Talla
-  const tieneStockEnColor = colorInfo.tallas.some(t => parseInt(t.stock) > 0);
+      // 2. Lógica inteligente de selección de Talla
+      const tieneStockEnColor = colorInfo.tallas.some(t => parseInt(t.stock) > 0);
 
-  // Si la talla seleccionada no tiene stock, busca automáticamente la primera talla disponible
-  let tallaSeleccionada = sel.talla;
-  const itemTallaActual = colorInfo.tallas.find(t => t.talla === tallaSeleccionada);
-  
-  if (!tallaSeleccionada || !itemTallaActual || parseInt(itemTallaActual.stock) <= 0) {
-    const primeraConStock = colorInfo.tallas.find(t => parseInt(t.stock) > 0);
-    if (primeraConStock) {
-      tallaSeleccionada = primeraConStock.talla;
-      sel.talla = tallaSeleccionada; 
+      let tallaSeleccionada = sel.talla;
+      const itemTallaActual = colorInfo.tallas.find(t => t.talla === tallaSeleccionada);
+      
+      if (!tallaSeleccionada || !itemTallaActual || parseInt(itemTallaActual.stock) <= 0) {
+        const primeraConStock = colorInfo.tallas.find(t => parseInt(t.stock) > 0);
+        if (primeraConStock) {
+          tallaSeleccionada = primeraConStock.talla;
+          sel.talla = tallaSeleccionada; 
+        }
+      }
+
+      const itemTalla = colorInfo.tallas.find(t => t.talla === tallaSeleccionada);
+      const stockDisponible = itemTalla ? parseInt(itemTalla.stock) : 0;
+      
+      const selectDeshabilitado = !tieneStockEnColor || colorInfo.tallas.length === 0;
+      const botonDeshabilitado = stockDisponible <= 0 || selectDeshabilitado;
+      
+      const textoBoton = botonDeshabilitado 
+        ? 'NO DISPONIBLE' 
+        : '<i class="fa-solid fa-cart-plus"></i> AGREGAR AL CARRITO';
+
+      const hexTexto = colorInfo.hex ? ` (${colorInfo.hex.toUpperCase()})` : '';
+      const etiquetaColor = sel.color ? `${sel.color}${hexTexto}` : 'N/A';
+
+      // 3. Renderizado de Galería con ampliado de imagen en click
+      let galeriaHTML = "";
+      if (tieneFotos) {
+        const thumbsHTML = fotosValidas.map((f, idx) => `
+          <img src="${f}" class="thumb-img ${idx === sel.imgIndex ? 'active' : ''}" 
+               onclick="cambiarImagen('${prod.id}', ${idx})" 
+               onerror="this.src='${imgMiladyImport}'" alt="Thumb">
+        `).join("");
+
+        galeriaHTML = `
+          <div class="product-gallery">
+            <div class="thumbs-column">${thumbsHTML}</div>
+            <div class="main-img-container">
+              <img src="${fotoActual}" onerror="this.src='${imgMiladyImport}'" class="main-img" onclick="abrirModalImagen('${fotoActual}')" title="Clic para ampliar foto" alt="${prod.nombre}">
+            </div>
+          </div>`;
+      } else {
+        galeriaHTML = `
+          <div class="product-gallery" style="justify-content: center; padding: 20px;">
+            <div class="main-img-container" style="max-width: 260px; height: 260px; width: 100%;">
+              <img src="${imgMiladyImport}" class="main-img" style="object-fit: contain; padding: 10px; width: 100%; height: 100%;" alt="${prod.nombre}">
+            </div>
+          </div>`;
+      }
+
+      // Detalle y Características de la prenda
+      let caracteristicasHTML = "";
+      if (prod.descripcion && prod.descripcion.trim() !== "") {
+        caracteristicasHTML = `
+          <div class="product-features">
+            <div class="product-features-title"><i class="fa-solid fa-circle-info"></i> Características de la Prenda</div>
+            <div>${prod.descripcion}</div>
+          </div>
+        `;
+      }
+
+      // Opciones de Colores y Tallas
+      const coloresKeys = Object.keys(prod.colores || {});
+      let coloresHTML = coloresKeys.map(cKey => {
+        const cData = prod.colores[cKey];
+        return `<div class="color-circle ${cKey === sel.color ? 'active' : ''}" 
+                     style="background-color: ${cData.hex}" 
+                     title="${cKey} (${cData.hex})"
+                     onclick="seleccionarColor('${prod.id}', '${cKey}')"></div>`;
+      }).join("");
+
+      let tallasHTML = colorInfo.tallas.map(t => {
+        const cant = parseInt(t.stock);
+        return `<option value="${t.talla}" ${t.talla === tallaSeleccionada ? 'selected' : ''}>
+                  ${t.talla} ${cant > 0 ? `(${cant} disp.)` : '(Agotado)'}
+                </option>`;
+      }).join("");
+
+      return `
+        ${galeriaHTML}
+        <div class="product-info">
+          <span class="product-code">CÓDIGO: ${prod.id}</span>
+          <h4 class="product-title">${prod.nombre}</h4>
+          <div class="product-price">S/ ${parseFloat(prod.precio || 0).toFixed(2)}</div>
+
+          ${caracteristicasHTML}
+
+          <div class="selectors-group">
+            <span class="selector-label">COLOR: <strong style="color:var(--accent); text-transform:uppercase;">${etiquetaColor}</strong></span>
+            <div class="color-options">${coloresHTML || '<p style="font-size:0.8rem; color:#888;">N/A</p>'}</div>
+
+            <span class="selector-label">TALLA Y CANTIDAD</span>
+            <div class="form-row">
+              <select class="form-control-custom" onchange="seleccionarTalla('${prod.id}', this.value)" ${selectDeshabilitado ? 'disabled' : ''}>
+                ${tallasHTML || '<option value="">Sin Talla</option>'}
+              </select>
+              <input type="number" class="form-control-custom" id="cant-${prod.id}" value="1" min="1" max="${stockDisponible}" style="width:70px;" ${botonDeshabilitado ? 'disabled' : ''}>
+            </div>
+          </div>
+
+          <button class="btn-add-cart" 
+                  onclick="agregarAlCarrito('${prod.id}')" 
+                  ${botonDeshabilitado ? 'disabled' : ''}>
+            ${textoBoton}
+          </button>
+        </div>
+      `;
     }
-  }
-
-  const itemTalla = colorInfo.tallas.find(t => t.talla === tallaSeleccionada);
-  const stockDisponible = itemTalla ? parseInt(itemTalla.stock) : 0;
-  
-  // El selector se inhabilita SOLO si NINGUNA talla tiene stock
-  const selectDeshabilitado = !tieneStockEnColor || colorInfo.tallas.length === 0;
-  const botonDeshabilitado = stockDisponible <= 0 || selectDeshabilitado;
-  
-  const textoBoton = botonDeshabilitado 
-    ? 'NO DISPONIBLE' 
-    : '<i class="fa-solid fa-cart-plus"></i> AGREGAR AL CARRITO';
-
-  // Textos y Nombre
-  const tituloConDescripcion = prod.descripcion && prod.descripcion.trim() !== "" 
-    ? `${prod.nombre}: ${prod.descripcion}` 
-    : prod.nombre;
-
-  const hexTexto = colorInfo.hex ? ` (${colorInfo.hex.toUpperCase()})` : '';
-  const etiquetaColor = sel.color ? `${sel.color}${hexTexto}` : 'N/A';
-
-  // 3. Renderizado de Galería
-  let galeriaHTML = "";
-  if (tieneFotos) {
-    const thumbsHTML = fotosValidas.map((f, idx) => `
-      <img src="${f}" class="thumb-img ${idx === sel.imgIndex ? 'active' : ''}" 
-           onclick="cambiarImagen('${prod.id}', ${idx})" 
-           onerror="this.src='${imgMiladyImport}'" alt="Thumb">
-    `).join("");
-
-    galeriaHTML = `
-      <div class="product-gallery">
-        <div class="thumbs-column">${thumbsHTML}</div>
-        <div class="main-img-container">
-          <img src="${fotoActual}" onerror="this.src='${imgMiladyImport}'" class="main-img" alt="${prod.nombre}">
-        </div>
-      </div>`;
-  } else {
-    // Diseño centrado para productos sin fotos
-    galeriaHTML = `
-      <div class="product-gallery" style="justify-content: center; padding: 20px;">
-        <div class="main-img-container" style="max-width: 260px; height: 260px; width: 100%;">
-          <img src="${imgMiladyImport}" class="main-img" style="object-fit: contain; padding: 10px; width: 100%; height: 100%;" alt="${prod.nombre}">
-        </div>
-      </div>`;
-  }
-
-  // Opciones de Colores y Tallas
-  const coloresKeys = Object.keys(prod.colores || {});
-  let coloresHTML = coloresKeys.map(cKey => {
-    const cData = prod.colores[cKey];
-    return `<div class="color-circle ${cKey === sel.color ? 'active' : ''}" 
-                 style="background-color: ${cData.hex}" 
-                 title="${cKey} (${cData.hex})"
-                 onclick="seleccionarColor('${prod.id}', '${cKey}')"></div>`;
-  }).join("");
-
-  let tallasHTML = colorInfo.tallas.map(t => {
-    const cant = parseInt(t.stock);
-    return `<option value="${t.talla}" ${t.talla === tallaSeleccionada ? 'selected' : ''}>
-              ${t.talla} ${cant > 0 ? `(${cant} disp.)` : '(Agotado)'}
-            </option>`;
-  }).join("");
-
-  return `
-    ${galeriaHTML}
-    <div class="product-info">
-      <span class="product-code">CÓDIGO: ${prod.id}</span>
-      <h4 class="product-title">${tituloConDescripcion}</h4>
-      <div class="product-price">S/ ${parseFloat(prod.precio || 0).toFixed(2)}</div>
-
-      <div class="selectors-group">
-        <span class="selector-label">COLOR: <strong style="color:var(--accent); text-transform:uppercase;">${etiquetaColor}</strong></span>
-        <div class="color-options">${coloresHTML || '<p style="font-size:0.8rem; color:#888;">N/A</p>'}</div>
-
-        <span class="selector-label">TALLA Y CANTIDAD</span>
-        <div class="form-row">
-          <select class="form-control-custom" onchange="seleccionarTalla('${prod.id}', this.value)" ${selectDeshabilitado ? 'disabled' : ''}>
-            ${tallasHTML || '<option value="">Sin Talla</option>'}
-          </select>
-          <input type="number" class="form-control-custom" id="cant-${prod.id}" value="1" min="1" max="${stockDisponible}" style="width:70px;" ${botonDeshabilitado ? 'disabled' : ''}>
-        </div>
-      </div>
-
-      <button class="btn-add-cart" 
-              onclick="agregarAlCarrito('${prod.id}')" 
-              ${botonDeshabilitado ? 'disabled' : ''}>
-        ${textoBoton}
-      </button>
-    </div>
-  `;
-}
 
     function cambiarImagen(prodId, idx) {
       selecciones[prodId].imgIndex = idx;
@@ -843,6 +914,17 @@
       if (prod && card) {
         card.innerHTML = generarHTMLTarjeta(prod);
       }
+    }
+
+    function abrirModalImagen(url) {
+      const modal = document.getElementById('imageModal');
+      const imgModal = document.getElementById('imgModalAmpliada');
+      imgModal.src = url;
+      modal.style.display = 'flex';
+    }
+
+    function cerrarModalImagen() {
+      document.getElementById('imageModal').style.display = 'none';
     }
 
     function agregarAlCarrito(prodId) {
