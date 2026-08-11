@@ -5,7 +5,6 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Milady Import | Ropa Deportiva & Importaciones</title>
   
-  <!-- Fuentes e Íconos Elegantes -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@500;700;800&family=Montserrat:wght@300;400;500;600;700&display=swap" rel="stylesheet">
@@ -14,7 +13,7 @@
   <style>
     :root {
       --primary: #121212;
-      --accent: #C5A059; /* Dorado Elegante */
+      --accent: #C5A059;
       --accent-hover: #A3803C;
       --bg-light: #FAF9F6;
       --card-bg: #FFFFFF;
@@ -39,7 +38,6 @@
       min-height: 100vh;
     }
 
-    /* BARRA PROMO SUPERIOR */
     .top-bar {
       background-color: var(--primary);
       color: #FFF;
@@ -51,7 +49,6 @@
       font-weight: 500;
     }
 
-    /* ENCABEZADO ELEGANTE */
     header {
       background: #FFFFFF;
       border-bottom: 1px solid var(--border-color);
@@ -127,7 +124,6 @@
       font-weight: 700;
     }
 
-    /* HERO BANNER */
     .hero-banner {
       background: linear-gradient(rgba(18,18,18,0.5), rgba(18,18,18,0.5)), url('https://images.unsplash.com/photo-1518310383802-640c2de311b2?auto=format&fit=crop&w=1600&q=80') center/cover no-repeat;
       color: white;
@@ -151,7 +147,6 @@
       margin: 0 auto;
     }
 
-    /* MAIN CONTAINER */
     .main-container {
       max-width: 1280px;
       margin: 0 auto 60px auto;
@@ -185,7 +180,6 @@
       gap: 35px;
     }
 
-    /* TARJETA PRODUCTO */
     .product-card {
       background: var(--card-bg);
       border-radius: 12px;
@@ -270,12 +264,15 @@
       margin-bottom: 4px;
     }
 
+    /* CAMBIO DE TIPOGRAFÍA Y ESTILO DEL TÍTULO */
     .product-title {
-      font-family: var(--font-title);
-      font-size: 1.25rem;
-      font-weight: 700;
+      font-family: var(--font-body); /* Montserrat en lugar de Cinzel */
+      font-size: 0.95rem;
+      font-weight: 600;
       color: var(--primary);
       margin-bottom: 8px;
+      line-height: 1.45;
+      text-transform: none; /* Mantiene la capitalización natural */
     }
 
     .product-price {
@@ -288,7 +285,7 @@
     .selector-label {
       font-size: 0.78rem;
       font-weight: 600;
-      letter-spacing: 1px;
+      letter-spacing: 0.5px;
       color: var(--text-main);
       margin-bottom: 8px;
       display: block;
@@ -366,7 +363,6 @@
       cursor: not-allowed !important;
     }
 
-    /* FOOTER CENTRADO */
     footer {
       background: #111111;
       color: #E0E0E0;
@@ -452,7 +448,6 @@
       padding-top: 18px;
     }
 
-    /* BOTÓN FLOTANTE WHATSAPP (INFERIOR DERECHA) */
     .whatsapp-float {
       position: fixed;
       bottom: 25px;
@@ -473,12 +468,9 @@
     .whatsapp-float:hover {
       background-color: #20BA5A;
       transform: translateY(-3px) scale(1.03);
-      box-shadow: 0 8px 25px rgba(37, 211, 102, 0.6);
     }
 
-    .whatsapp-icon {
-      font-size: 1.6rem;
-    }
+    .whatsapp-icon { font-size: 1.6rem; }
 
     .whatsapp-text {
       display: flex;
@@ -498,7 +490,6 @@
       font-weight: 600;
     }
 
-    /* MODAL CARRITO / CHECKOUT */
     .modal-overlay {
       position: fixed; top: 0; left: 0; width: 100%; height: 100%;
       background: rgba(0,0,0,0.6); z-index: 1000; display: none;
@@ -549,12 +540,10 @@
 </head>
 <body>
 
-  <!-- BARRA PROMO SUPERIOR -->
   <div class="top-bar">
     ENVÍOS A TODO EL PERÚ &bull; ROPA DEPORTIVA DE ALTA CALIDAD &bull; MILADY IMPORT
   </div>
 
-  <!-- ENCABEZADO PRINCIPAL -->
   <header>
     <div class="header-container">
       <a href="#" class="brand-logo">
@@ -570,13 +559,11 @@
     </div>
   </header>
 
-  <!-- BANNER HERO -->
   <section class="hero-banner">
     <h2>COLECCIÓN EXCLUSIVA 2026</h2>
     <p>Diseños elegantes, máxima comodidad y el mejor ajuste para potenciar tu estilo.</p>
   </section>
 
-  <!-- CATÁLOGO DE PRODUCTOS -->
   <main class="main-container">
     <div class="section-title">
       <h3>NUESTROS PRODUCTOS</h3>
@@ -588,7 +575,6 @@
     </div>
   </main>
 
-  <!-- FOOTER CENTRADO -->
   <footer>
     <div class="footer-content">
       <h2 class="footer-title">MILADY IMPORT</h2>
@@ -605,7 +591,6 @@
         </div>
       </div>
 
-      <!-- REDES SOCIALES -->
       <div class="footer-socials">
         <a href="https://facebook.com/MiladyImport" target="_blank" class="social-btn" title="Facebook">
           <i class="fa-brands fa-facebook-f"></i>
@@ -621,7 +606,6 @@
     </div>
   </footer>
 
-  <!-- BOTÓN FLOTANTE WHATSAPP (INFERIOR DERECHA) -->
   <a href="https://wa.me/51993512287?text=Hola%20Milady%20Import,%20deseo%20informaci%C3%B3n%20sobre%20sus%20productos" target="_blank" class="whatsapp-float">
     <i class="fa-brands fa-whatsapp whatsapp-icon"></i>
     <div class="whatsapp-text">
@@ -630,7 +614,6 @@
     </div>
   </a>
 
-  <!-- MODAL CARRITO / CHECKOUT -->
   <div class="modal-overlay" id="modalCarrito">
     <div class="modal-card">
       <div class="modal-header">
@@ -663,7 +646,6 @@
     let carrito = [];
     let selecciones = {};
 
-    // 3. Marca de agua dentro de marco elegante
     const imgMiladyImport = "data:image/svg+xml;charset=utf-8," + encodeURIComponent(`
       <svg xmlns="http://www.w3.org/2000/svg" width="400" height="400" viewBox="0 0 400 400">
         <rect width="100%" height="100%" fill="#FAF9F6"/>
@@ -716,7 +698,7 @@
 
     function generarHTMLTarjeta(prod) {
       const sel = selecciones[prod.id];
-      const colorInfo = prod.colores?.[sel.color] || { fotos: [], tallas: [] };
+      const colorInfo = prod.colores?.[sel.color] || { fotos: [], tallas: [], hex: "#000000" };
       const fotos = colorInfo.fotos && colorInfo.fotos.length > 0 ? colorInfo.fotos : [prod.fotoPrincipal];
       
       let fotoActual = fotos[sel.imgIndex] || prod.fotoPrincipal;
@@ -730,6 +712,15 @@
       const esInvalido = stockDisponible <= 0 || !sel.talla || colorInfo.tallas.length === 0;
       const textoBoton = (stockDisponible <= 0 || colorInfo.tallas.length === 0) ? 'NO DISPONIBLE' : '<i class="fa-solid fa-cart-plus"></i> AGREGAR AL CARRITO';
 
+      // FORMATO REQUERIDO 1: Nombre + Descripción
+      const tituloConDescripcion = prod.descripcion && prod.descripcion.trim() !== "" 
+        ? `${prod.nombre}: ${prod.descripcion}` 
+        : prod.nombre;
+
+      // FORMATO REQUERIDO 2: Color + (HEX_COLOR)
+      const hexTexto = colorInfo.hex ? ` (${colorInfo.hex.toUpperCase()})` : '';
+      const etiquetaColor = sel.color ? `${sel.color}${hexTexto}` : 'N/A';
+
       let thumbsHTML = fotos
         .filter(f => f && f.trim() !== "")
         .map((f, idx) => `
@@ -742,7 +733,7 @@
         const cData = prod.colores[cKey];
         return `<div class="color-circle ${cKey === sel.color ? 'active' : ''}" 
                      style="background-color: ${cData.hex}" 
-                     title="${cKey}"
+                     title="${cKey} (${cData.hex})"
                      onclick="seleccionarColor('${prod.id}', '${cKey}')"></div>`;
       }).join("");
 
@@ -762,11 +753,11 @@
         </div>
         <div class="product-info">
           <span class="product-code">CÓDIGO: ${prod.id}</span>
-          <h4 class="product-title">${prod.nombre}</h4>
+          <h4 class="product-title">${tituloConDescripcion}</h4>
           <div class="product-price">S/ ${parseFloat(prod.precio || 0).toFixed(2)}</div>
 
           <div class="selectors-group">
-            <span class="selector-label">COLOR: <strong style="color:var(--accent);">${sel.color || 'N/A'}</strong></span>
+            <span class="selector-label">COLOR: <strong style="color:var(--accent); text-transform:uppercase;">${etiquetaColor}</strong></span>
             <div class="color-options">${coloresHTML}</div>
 
             <span class="selector-label">TALLA Y CANTIDAD</span>
@@ -819,7 +810,6 @@
       }
     }
 
-    // 1. Mostrar alerta si intenta agregar cantidad mayor al stock
     function agregarAlCarrito(prodId) {
       const prod = catalogo.find(p => p.id === prodId);
       const sel = selecciones[prodId];
@@ -914,7 +904,6 @@
       document.getElementById("modalCarrito").classList.remove("active");
     }
 
-    // 2. Validación de Stock Real al finalizar pedido y actualización
     async function procesarPedido(e) {
       e.preventDefault();
       if (carrito.length === 0) {
@@ -927,7 +916,6 @@
       btn.innerText = "VERIFICANDO STOCK Y PROCESANDO...";
 
       try {
-        // Obtiene inventario actualizado
         const resCat = await fetch(SCRIPT_URL);
         const catalogoActualizado = await resCat.json();
         
@@ -989,7 +977,6 @@
           carrito = [];
           actualizarContadorCarrito();
           cerrarCarrito();
-          // Actualiza automáticamente la página tras finalizar pedido
           window.location.reload();
         } else {
           alert("Error al registrar el pedido: " + data.message);
