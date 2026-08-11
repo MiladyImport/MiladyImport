@@ -691,7 +691,7 @@
       const sel = selecciones[prod.id];
       const colorInfo = prod.colores[sel.color] || { fotos: [], tallas: [] };
       const fotos = colorInfo.fotos.length > 0 ? colorInfo.fotos : [prod.fotoPrincipal];
-      const fotoActual = fotos[sel.imgIndex] || prod.fotoPrincipal || 'https://via.placeholder.com/300';
+      const fotoActual = fotos[sel.imgIndex] || prod.fotoPrincipal || 'https://placehold.co/300x300?text=Milady+Import';
       const coloresKeys = Object.keys(prod.colores);
 
       let thumbsHTML = fotos.map((f, idx) => `
